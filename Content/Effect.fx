@@ -1,5 +1,14 @@
 ﻿
 float4x4 WorldViewProjection;
+Texture2D Texture;
+float TextureDisplacement;
+
+SamplerState TextureSampler
+{
+	Texture = (Texture);
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
 
 //==============================================================================
 // Vertex shader
@@ -33,7 +42,7 @@ float4 PS(VertexOut input) : COLOR
 	return float4(
 		input.LocalPosition.x * 4,
 		input.LocalPosition.y * 2,
-		input.LocalPosition.x *-4,
+		input.LocalPosition.x * -4,
 		1);
 }
 
@@ -56,7 +65,7 @@ struct PatchConstantOut
 
 PatchConstantOut PatchConstantFunc(
 	InputPatch<VertexOut, 3> ip,
-	uint PatchID : SV_PrimitiveID)
+	uint patchID : SV_PrimitiveID)
 {
 	PatchConstantOut output;
 
@@ -74,7 +83,7 @@ PatchConstantOut PatchConstantFunc(
 [outputtopology("triangle_cw")]  // triangle_cw  triangle_ccw  line
 [outputcontrolpoints(3)]
 [patchconstantfunc("PatchConstantFunc")]
-//[maxtessfactor(2)]
+[maxtessfactor(30.0)]
 HullOut HS(InputPatch<VertexOut, 3> ip, uint i : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
 {
 	HullOut output;
@@ -98,7 +107,8 @@ VertexOut DS(const OutputPatch<HullOut, 3> patch, float3 barycentric : SV_Domain
 		patch[2].Position * barycentric.z;
 
 	float dist = length(pos.xyz);
-	pos.z = -dist * dist * Bend;
+	pos.z = -Bend * dist * dist;
+	pos.z += TextureDisplacement * Texture.SampleLevel(TextureSampler, pos.xy * 2, 0).x;
 
 	output.Position = mul(pos, WorldViewProjection);
 	output.LocalPosition = pos;
@@ -126,6 +136,8 @@ void GS(triangle in VertexOut vertex[3], inout TriangleStream<VertexOut> triStre
 		float3 origin = s < 1 ? lerp(v0, v1, t) :
 						s < 2 ? lerp(v1, v2, t) :
 								lerp(v2, v0, t);
+
+		origin.z += TextureDisplacement * Texture.SampleLevel(TextureSampler, origin.xy, 0).x;
 
 		vertex[0].Position = mul(float4(origin + v0 * size, 1), WorldViewProjection);
 		vertex[1].Position = mul(float4(origin + v1 * size, 1), WorldViewProjection);
