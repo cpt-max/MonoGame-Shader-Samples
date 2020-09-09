@@ -1,13 +1,19 @@
-Hull, Domain and Geometry shader sample for MonoGame. 
+# Hull, Domain and Geometry shader sample for MonoGame
 
-This sample project needs to reference MonoGame.Framework.WindowsDX from this MonoGame branch:
-https://github.com/cpt-max/MonoGame/tree/shader
+### Build for OpenGL
+- Open ShaderTestGL.csproj.
+- Make sure MonoGame.Framework.DesktopGL from this [MonoGame fork](https://github.com/cpt-max/MonoGame/tree/glshaderstages) is referenced.
+- Rebuild the content in ShaderTestGL.mgcb using the MGCB Editor from that fork.
 
-Also the content included with this sample (ShaderTest.mgcb) needs to be compiled with the pipeline tool from this branch. The mgfxc.exe shader compiler has been modified.
-Currently only WindowsDX is working.
+### Build for DirectX
+- Open ShaderTestDX.csproj.
+- Make sure MonoGame.Framework.WindowsDX from this [MonoGame fork](https://github.com/cpt-max/MonoGame/tree/glshaderstages) is referenced. 
+- Rebuild the content in ShaderTestDX.mgcb using the MGCB Editor from that fork. 
 
-Thanks to JSandusky as this work is based on his MonoGame fork:
-https://github.com/JSandusky/MonoGame
+If you are only interested in the DirectX version, you can also use MonoGame.Framework.WindowsDX and the MGCB Editor from [this branch](https://github.com/cpt-max/MonoGame/tree/shader) instead. This branch doesn't contain the switch from MojoShader to ShaderConductor, so it changes a lot less compared to the official MonoGame base version.
+
+Thanks to JSandusky as the Hull, Domain and Geometry shader support for DirectX is based on [his MonoGame fork](https://github.com/JSandusky/MonoGame).
+
 
 
 
