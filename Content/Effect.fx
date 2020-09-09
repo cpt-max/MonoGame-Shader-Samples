@@ -37,7 +37,7 @@ VertexOut VS(in VertexIn input)
 //==============================================================================
 // Pixel shader 
 //==============================================================================
-float4 PS(VertexOut input) : COLOR
+float4 PS(VertexOut input) : SV_TARGET
 {
 	return float4(
 		input.LocalPosition.x * 4,

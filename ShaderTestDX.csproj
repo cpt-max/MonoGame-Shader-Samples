@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B4911489-42C4-4057-A50B-FF0206747232}</ProjectGuid>
+    <ProjectGuid>{5E42424D-ACDD-4226-B77D-9D6025F575AC}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>ShaderTest</RootNamespace>
     <AssemblyName>ShaderTest</AssemblyName>
@@ -18,8 +18,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <OutputPath>bin\DirectX\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;DIRECTX</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -27,8 +27,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <OutputPath>bin\DirectX\</OutputPath>
+    <DefineConstants>TRACE;DIRECTX</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -37,7 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Content\ShaderTest.mgcb" />
+    <None Include="Content\ShaderTestDX.mgcb" />
     <None Include="Content\TextFont.spritefont" />
   </ItemGroup>
   <ItemGroup>
@@ -45,15 +45,18 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj">
-      <Project>{1db173f6-3ede-4c22-8082-91c8f67962f0}</Project>
-      <Name>MonoGame.Framework.WindowsDX</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Content\Effect.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Windows" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj">
+      <Project>{090bea8c-1642-45f7-bbe8-fd2bd60d8abe}</Project>
+      <Name>MonoGame.Framework.WindowsDX</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

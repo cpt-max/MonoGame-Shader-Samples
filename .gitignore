@@ -90,3 +90,4 @@ IDE/MonoDevelop/MonoDevelop.MonoGame/templates/Common/MonoGame.Framework.dll.con
 
 # docfx
 _*
+/ShaderTest.sln
