@@ -154,12 +154,12 @@ void GS(triangle in VertexOut vertex[3], inout TriangleStream<VertexOut> triStre
 //==============================================================================
 // Techniques
 //==============================================================================
-technique Vertex_Pixel
+technique Basic_Vertex_Pixel
 {
 	pass P0
 	{
-		VertexShader   = compile vs_4_0 VS();
-		PixelShader    = compile ps_4_0 PS();
+		VertexShader = compile vs_4_0 VS();
+		PixelShader = compile ps_4_0 PS();
 	}
 };
 
