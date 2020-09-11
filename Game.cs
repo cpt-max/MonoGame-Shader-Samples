@@ -28,7 +28,11 @@ namespace ShaderTest
 
         public ShaderTestGame()
         {
-            Content.RootDirectory = "Content";
+#if OPENGL
+            Content.RootDirectory = "OpenGL/Content";
+#else
+            Content.RootDirectory = "DirectX/Content";
+#endif
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;  
