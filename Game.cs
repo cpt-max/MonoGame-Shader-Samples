@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -13,18 +12,14 @@ namespace ShaderTest
 
         GraphicsDeviceManager graphics;
         Effect effect;
-        Texture texture;
-        VertexBuffer triangle;
+        VertexBuffer vertexBuffer;
+        IndexBuffer indexBuffer;
         SpriteBatch spriteBatch;
         SpriteFont textFont;
 
-        int technique = 3;
-        bool spaceKeyWasUpLastFrame;
-
-        float textureDisplacement = 0.1f;
-        float tesselation = 8;
-        float geometryGeneration = 5;
-        float bend;
+        float tesselation = 10;
+        float radius = 0.1f;
+        float distribution = 1;
 
         public ShaderTestGame()
         {
@@ -32,7 +27,7 @@ namespace ShaderTest
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
-            graphics.IsFullScreen = false;  
+            graphics.IsFullScreen = false;
         }
 
         protected override void Initialize()
@@ -46,25 +41,15 @@ namespace ShaderTest
         protected override void LoadContent()
         {
             effect = Content.Load<Effect>("Effect");
-            texture = Content.Load<Texture>("Texture");
             textFont = Content.Load<SpriteFont>("TextFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            triangle = CreateTriangle();   
+            CreateMesh(ref vertexBuffer, ref indexBuffer);
         }
 
         protected override void Update(GameTime gameTime)
-        {  
+        {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
             KeyboardState keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.Space) && spaceKeyWasUpLastFrame)
-                technique = ++technique % 4;
-            spaceKeyWasUpLastFrame = keyboardState.IsKeyUp(Keys.Space);
-
-            if (keyboardState.IsKeyDown(Keys.D1) || keyboardState.IsKeyDown(Keys.NumPad1))
-                bend += dt * 5;
-            if (keyboardState.IsKeyDown(Keys.D2) || keyboardState.IsKeyDown(Keys.NumPad2))
-                bend -= dt * 5;
 
             if (keyboardState.IsKeyDown(Keys.W))
                 tesselation += dt * 5;
@@ -72,52 +57,44 @@ namespace ShaderTest
                 tesselation -= dt * 5;
 
             if (keyboardState.IsKeyDown(Keys.S))
-                geometryGeneration += dt * 3;
+                radius += dt * 0.1f;
             if (keyboardState.IsKeyDown(Keys.A))
-                geometryGeneration -= dt * 3;
+                radius -= dt * 0.1f;
 
             if (keyboardState.IsKeyDown(Keys.X))
-                textureDisplacement += dt * 1;
+                distribution += dt * 0.3f;
             if (keyboardState.IsKeyDown(Keys.Z))
-                textureDisplacement -= dt * 1;
+                distribution -= dt * 0.3f;
 
-            bend = Math.Max(-5, Math.Min(5, bend));
-            tesselation = Math.Max(1, Math.Min(20, tesselation));
-            geometryGeneration = Math.Max(1, Math.Min(10, geometryGeneration));
-            textureDisplacement = Math.Max(0, Math.Min(1, textureDisplacement));
-            
+            tesselation = Math.Max(0, Math.Min(20, tesselation));
+            radius = Math.Max(0, Math.Min(1, radius));
+            distribution = Math.Max(0, Math.Min(1, distribution));
+
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             graphics.GraphicsDevice.Clear(Color.Black);
-            
-            GraphicsDevice.RasterizerState = RasterizerState.CullNone;
-            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+            //GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+            //GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             Matrix world = Matrix.CreateScale(10);
-            Matrix view = Matrix.CreateLookAt(new Vector3(0, -10, 10), new Vector3(0, 0, 8), new Vector3(0, 1, 0));
+            Matrix view = Matrix.CreateLookAt(new Vector3(0, -10, 5), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
             Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), (float)ResolutionX / (float)ResolutionY, 0.1f, 1000f);
 
-            effect.CurrentTechnique = effect.Techniques[technique];
             effect.Parameters["WorldViewProjection"].SetValue(world * view * projection);
-            effect.Parameters["Texture"].SetValue(texture);
-            effect.Parameters["Bend"].SetValue(bend);
-            effect.Parameters["Tesselation"].SetValue(tesselation);
-            effect.Parameters["GeometryGeneration"].SetValue(geometryGeneration);
-            effect.Parameters["TextureDisplacement"].SetValue(textureDisplacement);
+            effect.Parameters["Tesselation"].SetValue(1f + (int)(tesselation) * 2f);
+            effect.Parameters["Radius"].SetValue(radius);
 
             foreach (var pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
 
-                PrimitiveType primitiveType = hullShaderActive ?
-                    PrimitiveType.PatchListWith3ControlPoints :
-                    PrimitiveType.TriangleList;
-
-                GraphicsDevice.SetVertexBuffer(triangle);
-                GraphicsDevice.DrawPrimitives(primitiveType, 0, triangle.VertexCount / 3);
+                GraphicsDevice.SetVertexBuffer(vertexBuffer);
+                GraphicsDevice.Indices = indexBuffer;
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.PatchListWith4ControlPoints, 0, 0, indexBuffer.IndexCount / 4);
             }
 
             DrawText();
@@ -127,38 +104,77 @@ namespace ShaderTest
 
         private void DrawText()
         {
-            string text = "Space for Shader Stages: \n\n";
-            text += "1 and 2 for Bend: \n";
-            text += "Q and W for Tesselation: \n";
-            text += "A and S for Geometry Generation: \n";
-            text += "Z and X for Texture Displacement: \n";  
+            string text = "Q and W for Tesselation: \n";
+            text       += "A and S for Radius: \n";
+            text       += "Z and X for Distribution: \n";
 
-            string values = effect.CurrentTechnique.Name + "\n\n";
-            values += (hullShaderActive ? bend.ToString() : "") + "\n";
-            values += (hullShaderActive ? tesselation.ToString() : "") + "\n";
-            values += (geometryShaderActive ? geometryGeneration.ToString() : "") + "\n";
-            values += (geometryShaderActive || hullShaderActive ? textureDisplacement.ToString() : "") + "\n";
-            
+            string values = tesselation.ToString() + "\n";
+            values += radius.ToString() + "\n";
+            values += distribution.ToString() + "\n";
+
             spriteBatch.Begin();
             spriteBatch.DrawString(textFont, text, new Vector2(50, 50), Color.White);
             spriteBatch.DrawString(textFont, values, new Vector2(800, 50), Color.White);
             spriteBatch.End();
         }
 
-        private VertexBuffer CreateTriangle()
+        private void CreateMesh(ref VertexBuffer vertexBuffer, ref IndexBuffer indexBuffer)
         {
-            var vertices = new VertexPositionTexture[] {
-                new VertexPositionTexture(new Vector3( 0, 1, 0), new Vector2(0, 0)),
-                new VertexPositionTexture(new Vector3( 1, 0, 0), new Vector2(0, 1)),
-                new VertexPositionTexture(new Vector3(-1, 0, 0), new Vector2(1, 1)),
+            float px = 0.4330127f;
+            float py = 0.25f;
+            float ph = -1.5f;
+            float nx = 0.6862392f;
+            float ny = 0.3961913f;
+            float nz = 0.6099734f;
+            float ny2 = 0.7923826f;
+
+            var vertices = new VertexPositionNormalTexture[] {
+                // top vertices
+                new VertexPositionNormalTexture(new Vector3(0, 0.5f, 0),  new Vector3(0, ny2, nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(px, py, 0),   new Vector3(nx, ny, nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(px, -py, 0),  new Vector3(nx, -ny, nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(0, -0.5f, 0), new Vector3(0, -ny2, nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(-px, -py, 0), new Vector3(-nx, -ny, nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(-px, py, 0),  new Vector3(-nx, ny, nz), new Vector2(0, 0)),
+                // bottom vertices
+                new VertexPositionNormalTexture(new Vector3(0, 0.5f, ph),  new Vector3(0, 1, -nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(px, py, ph),   new Vector3(nx, ny, -nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(px, -py, ph),  new Vector3(nx, -ny, -nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(0, -0.5f, ph), new Vector3(0, -1, -nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(-px, -py, ph), new Vector3(-nx, -ny, -nz), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(-px, py, ph),  new Vector3(-nx, ny, -nz), new Vector2(0, 0)),
             };
 
-            var vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
+            vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionNormalTexture), vertices.Length, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices);
-            return vertexBuffer;
-        }
 
-        private bool hullShaderActive => effect.CurrentTechnique.Name.Contains("Hull");
-        private bool geometryShaderActive => effect.CurrentTechnique.Name.Contains("Geometry");
+            var indices = new int[32];
+
+            indices[0] = 0;
+            indices[1] = 1;
+            indices[2] = 2;
+            indices[3] = 3;
+
+            indices[4] = 0;
+            indices[5] = 3;
+            indices[6] = 4;
+            indices[7] = 5;
+            
+            for (int i = 0; i < 5; i++)
+            {
+                indices[8 + i * 4] = 0 + i;
+                indices[9 + i * 4] = 6 + i;
+                indices[10+ i * 4] = 7 + i;
+                indices[11+ i * 4] = 1 + i;
+            }
+
+            indices[28] = 5;
+            indices[29] = 11;
+            indices[30] = 6;
+            indices[31] = 0;
+            
+            indexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(indices);
+        }
     }
 }

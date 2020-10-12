@@ -1,198 +1,187 @@
 ﻿
 float4x4 WorldViewProjection;
-Texture2D Texture;
-float TextureDisplacement;
-
-SamplerState TextureSampler
-{
-	Texture = (Texture);
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
-//==============================================================================
-// Vertex shader
-//==============================================================================
-struct VertexIn
-{
-	float3 Position : POSITION0;
-};
-
-struct VertexOut
-{
-	float4 Position : SV_POSITION;
-	float4 LocalPosition : TEXCOORD0;
-};
-
-VertexOut VS(in VertexIn input)
-{
-	VertexOut output;
-
-	output.LocalPosition = float4(input.Position.xyz, 1);
-	output.Position = mul(output.LocalPosition, WorldViewProjection);
-	
-	return output;
-}
-
-//==============================================================================
-// Pixel shader 
-//==============================================================================
-float4 PS(VertexOut input) : SV_TARGET
-{
-	return float4(
-		input.LocalPosition.x * 4,
-		input.LocalPosition.y * 2,
-		input.LocalPosition.x * -4,
-		1);
-}
-
-//==============================================================================
-// Hull shader 
-//==============================================================================
-float Bend;
 float Tesselation;
+float Radius;
 
-struct HullOut
+struct VS_INPUT
 {
-	float4 Position : BEZIERPOS;
+    float4 pos : POSITION;
+    float3 norm : NORMAL;
 };
 
+struct VS_OUTPUT
+{
+    float4 pos : SV_POSITION;
+    float3 worldPos : POSITION;
+    float3 norm : NORMAL;
+};
+
+struct DS_OUTPUT
+{
+    float4 pos : SV_POSITION;
+    float3 norm : NORMAL;
+};
+
+//================================================================================================
+// Vertex Shader
+//================================================================================================
+VS_OUTPUT VS(VS_INPUT input)
+{
+    VS_OUTPUT output;
+
+    output.worldPos = input.pos.xyz;
+    output.norm = input.norm;
+    output.pos = mul(float4(output.worldPos, 1), WorldViewProjection);
+
+    return output;
+}
+
+//================================================================================================
+// Hull Shader
+//================================================================================================
 struct PatchConstantOut
 {
-	float Edges[3] : SV_TessFactor;
-	float Inside   : SV_InsideTessFactor;
+	float edges[4] : SV_TessFactor;
+	float inside[2]: SV_InsideTessFactor;
+    float3 patchNorm : NORMAL;
 };
 
 PatchConstantOut PatchConstantFunc(
-	InputPatch<VertexOut, 3> ip,
+	InputPatch<VS_OUTPUT, 3> cp,
 	uint patchID : SV_PrimitiveID)
 {
 	PatchConstantOut output;
 
-	output.Edges[0] = Tesselation;
-	output.Edges[1] = Tesselation;
-	output.Edges[2] = Tesselation;
-
-	output.Inside = Tesselation;
+	output.edges[0] = Tesselation;
+	output.edges[1] = Tesselation;
+	output.edges[2] = Tesselation;
+	output.edges[3] = Tesselation;
+			  
+	output.inside[0] = Tesselation;
+	output.inside[1] = Tesselation;
+    
+    output.patchNorm = normalize(cross(cp[0].worldPos - cp[2].worldPos,
+		                     cp[3].worldPos - cp[1].worldPos));
 
 	return output;
 }
 
-[domain("tri")]  // tri  quad  isoline
-[partitioning("fractional_even")]  // fractional_even  fractional_odd  pow2
+[domain("quad")]  // tri  quad  isoline
+[partitioning("fractional_odd")]  // fractional_even  fractional_odd  pow2
 [outputtopology("triangle_cw")]  // triangle_cw  triangle_ccw  line
-[outputcontrolpoints(3)]
+[outputcontrolpoints(4)]
 [patchconstantfunc("PatchConstantFunc")]
 [maxtessfactor(30.0)]
-HullOut HS(InputPatch<VertexOut, 3> ip, uint i : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
+VS_OUTPUT HS(InputPatch<VS_OUTPUT, 4> cp, uint i : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
 {
-	HullOut output;
+    VS_OUTPUT output;
 
-	output.Position = ip[i].LocalPosition;
-
+    output.worldPos = cp[i].worldPos;
+    output.norm = cp[i].norm;
+    output.pos = mul(float4(output.worldPos, 1), WorldViewProjection);
+ 
 	return output;
 }
 
-//==============================================================================
-// Domain shader
-//==============================================================================
-[domain("tri")]
-VertexOut DS(const OutputPatch<HullOut, 3> patch, float3 barycentric : SV_DomainLocation, PatchConstantOut patchConst)
+//================================================================================================
+// Domain Shader
+//================================================================================================
+float3 interpol(float3 corner0, float3 corner1, float3 corner2, float3 corner3, float2 edgeDist, float2 uvSign)
 {
-	VertexOut output;
-
-	float4 pos =
-		patch[0].Position * barycentric.x +
-		patch[1].Position * barycentric.y +
-		patch[2].Position * barycentric.z;
-
-	float dist = length(pos.xyz);
-	pos.z = -Bend * dist * dist;
-	pos.z += TextureDisplacement * Texture.SampleLevel(TextureSampler, pos.xy * 2, 0).x;
-
-	output.Position = mul(pos, WorldViewProjection);
-	output.LocalPosition = pos;
-
-	return output;
+    float3 leftEdge  = normalize(corner3 - corner0);
+    float3 rightEdge = normalize(corner2 - corner1);
+    
+    float3 startLeft  = uvSign.x > 0 ? corner0 : corner3;
+    float3 startRight = uvSign.x > 0 ? corner1 : corner2;
+    
+    float3 midLeft  = startLeft  + leftEdge  * edgeDist.x;
+    float3 midRight = startRight + rightEdge * edgeDist.x;
+    
+    float3 startUp = uvSign.y > 0 ? midLeft : midRight;
+    float3 upEdge = normalize(midRight - midLeft);
+    
+    return startUp + upEdge * edgeDist.y;
 }
 
-//==============================================================================
-// Geometry shader 
-//==============================================================================
-float GeometryGeneration;
-
-[maxvertexcount(100)]
-void GS(triangle in VertexOut vertex[3], inout TriangleStream<VertexOut> triStream)
+[domain("quad")]
+DS_OUTPUT DS(const OutputPatch<VS_OUTPUT, 4> cp, float2 uv : SV_DomainLocation, PatchConstantOut patchConst)
 {
-	float3 v0 = vertex[0].LocalPosition.xyz;
-	float3 v1 = vertex[1].LocalPosition.xyz;
-	float3 v2 = vertex[2].LocalPosition.xyz;
+    DS_OUTPUT output;
+    
+    //float step = 1 / Tesselation;
+    //float nr = (Tesselation - 1) / 2;
+      
+	float2 uvSigned = uv * 2 - 1; 
+    float2 uvSign = sign(uvSigned);
+    float2 uvAbs = abs(uvSigned);
+    //float2 uvAbsPow = pow(uvAbs, Distribution);
+    float2 edgeDist = (1 - uvAbs) * uvSign * Radius;
+    
+    //float2 uvPow = (uvSign * uvAbsPow + 1) / 2;
+    
+    //float2 uvStart = 1 / Tesselation;
+    //float2 edgeClose = uvAbs - uvStart;
+    
+    // calculate position
+    /*
+    float3 leftEdge  = normalize(cp[3].worldPos - cp[0].worldPos);
+    float3 rightEdge = normalize(cp[2].worldPos - cp[1].worldPos);
+    
+    float3 startLeft  = uvSign.x > 0 ? cp[0].worldPos : cp[3].worldPos;
+    float3 startRight = uvSign.x > 0 ? cp[1].worldPos : cp[2].worldPos;
+    
+    float3 midLeft  = startLeft  + leftEdge  * edgeDist.x;
+    float3 midRight = startRight + rightEdge * edgeDist.x;
+    
+    float3 startUp = uvSign.y > 0 ? midLeft : midRight;
+    float3 upEdge = normalize(midRight - midLeft);
+    
+    float3 worldPos = startUp + upEdge * edgeDist.y;
+    */
+    // calculate normal
 
-	float size = 1 / GeometryGeneration;
+ 
+    float3 worldPos = interpol(cp[0].worldPos, cp[1].worldPos, cp[2].worldPos, cp[3].worldPos, edgeDist, uvSign);
+    float3 norm     = interpol(cp[0].norm,     cp[1].norm,     cp[2].norm,     cp[3].norm,     edgeDist*8, uvSign);
+    
+    float t = abs(edgeDist.x * edgeDist.y) * 100;
+    norm = norm * (1 - t) + patchConst.patchNorm * t;
+    norm = normalize(norm);
+    
+    output.pos = mul(float4(worldPos, 1), WorldViewProjection);
+    output.norm = abs(norm - patchConst.patchNorm); // ; // patchNorm; //  patch[0].worldPos.xyz;
 
-	for (float s = 0; s < 3; s += size)
-	{
-		float t = frac(s);
-		float3 origin = s < 1 ? lerp(v0, v1, t) :
-						s < 2 ? lerp(v1, v2, t) :
-								lerp(v2, v0, t);
-
-		origin.z += TextureDisplacement * Texture.SampleLevel(TextureSampler, origin.xy, 0).x;
-
-		vertex[0].Position = mul(float4(origin + v0 * size, 1), WorldViewProjection);
-		vertex[1].Position = mul(float4(origin + v1 * size, 1), WorldViewProjection);
-		vertex[2].Position = mul(float4(origin + v2 * size, 1), WorldViewProjection);
-		
-		triStream.Append(vertex[0]);
-		triStream.Append(vertex[1]);
-		triStream.Append(vertex[2]);
-
-		triStream.RestartStrip();
-	}
+    return output;
 }
 
-//==============================================================================
+//================================================================================================
+// Pixel Shader
+//================================================================================================
+float4 PS(DS_OUTPUT input) : SV_TARGET
+{
+    float3 col = input.norm; // float3((input.norm.xy + 1) / 2, input.norm.z);
+    return float4(col, 1);
+}
+
+//================================================================================================
 // Techniques
-//==============================================================================
-technique Basic_Vertex_Pixel
+//================================================================================================
+technique Tech0
 {
-	pass P0
-	{
-		VertexShader = compile vs_4_0 VS();
-		PixelShader = compile ps_4_0 PS();
-	}
-};
-
-technique Hull_Domain
-{
-	pass P0
-	{
-		VertexShader = compile vs_4_0 VS();
-		PixelShader = compile ps_4_0 PS();
-		HullShader = compile hs_5_0 HS();
+    pass Pass0
+    {
+        ZEnable = true;
+        ZWriteEnable = true;
+        CullMode = none;
+        FillMode = wireframe;
+		
+        BlendOp = Add;
+        SrcBlend = One;
+        DestBlend = Zero;
+	  
+        VertexShader = compile vs_4_0 VS();
+		HullShader   = compile hs_5_0 HS();
 		DomainShader = compile ds_5_0 DS();
-	}
-};
-
-technique Geometry
-{
-	pass P0
-	{
-		VertexShader = compile vs_4_0 VS();
-		PixelShader = compile ps_4_0 PS();
-		GeometryShader = compile gs_4_0 GS();
-	}
-};
-
-technique Hull_Domain_Geometry
-{
-	pass P0
-	{
-		VertexShader = compile vs_4_0 VS();
-		PixelShader = compile ps_4_0 PS();
-		HullShader = compile hs_5_0 HS();
-		DomainShader = compile ds_5_0 DS();
-		GeometryShader = compile gs_4_0 GS();
-	}
-};
-
+        PixelShader  = compile ps_4_0 PS();
+    }
+}
