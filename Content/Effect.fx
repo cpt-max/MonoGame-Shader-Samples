@@ -11,8 +11,7 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
-    float4 pos : SV_POSITION;
-    float3 worldPos : POSITION;
+    float4 worldPos : POSITION;
     float3 norm : NORMAL;
 };
 
@@ -29,9 +28,9 @@ VS_OUTPUT VS(VS_INPUT input)
 {
     VS_OUTPUT output;
 
-    output.worldPos = input.pos.xyz;
+    output.worldPos = input.pos;
     output.norm = input.norm;
-    output.pos = mul(float4(output.worldPos, 1), WorldViewProjection);
+    //output.pos = mul(float4(output.worldPos, 1), WorldViewProjection);
 
     return output;
 }
@@ -47,7 +46,7 @@ struct PatchConstantOut
 };
 
 PatchConstantOut PatchConstantFunc(
-	InputPatch<VS_OUTPUT, 3> cp,
+	InputPatch<VS_OUTPUT, 4> cp,
 	uint patchID : SV_PrimitiveID)
 {
 	PatchConstantOut output;
@@ -60,8 +59,8 @@ PatchConstantOut PatchConstantFunc(
 	output.inside[0] = Tesselation;
 	output.inside[1] = Tesselation;
     
-    output.patchNorm = normalize(cross(cp[0].worldPos - cp[2].worldPos,
-		                     cp[3].worldPos - cp[1].worldPos));
+    output.patchNorm = normalize(cross(cp[0].worldPos.xyz - cp[2].worldPos.xyz,
+		                     cp[3].worldPos.xyz - cp[1].worldPos.xyz));
 
 	return output;
 }
@@ -78,7 +77,7 @@ VS_OUTPUT HS(InputPatch<VS_OUTPUT, 4> cp, uint i : SV_OutputControlPointID, uint
 
     output.worldPos = cp[i].worldPos;
     output.norm = cp[i].norm;
-    output.pos = mul(float4(output.worldPos, 1), WorldViewProjection);
+    //output.pos = mul(float4(output.worldPos, 1), WorldViewProjection);
  
 	return output;
 }
@@ -141,7 +140,7 @@ DS_OUTPUT DS(const OutputPatch<VS_OUTPUT, 4> cp, float2 uv : SV_DomainLocation, 
     // calculate normal
 
  
-    float3 worldPos = interpol(cp[0].worldPos, cp[1].worldPos, cp[2].worldPos, cp[3].worldPos, edgeDist, uvSign);
+    float3 worldPos = interpol(cp[0].worldPos.xyz, cp[1].worldPos.xyz, cp[2].worldPos.xyz, cp[3].worldPos.xyz, edgeDist, uvSign);
     float3 norm     = interpol(cp[0].norm,     cp[1].norm,     cp[2].norm,     cp[3].norm,     edgeDist*8, uvSign);
     
     float t = abs(edgeDist.x * edgeDist.y) * 100;
