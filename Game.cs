@@ -17,9 +17,9 @@ namespace ShaderTest
         SpriteBatch spriteBatch;
         SpriteFont textFont;
 
-        float tesselation = 10;
+        float tesselation = 30;
         float radius = 0.1f;
-        float distribution = 1;
+        float rotation = 0;
 
         public ShaderTestGame()
         {
@@ -62,13 +62,12 @@ namespace ShaderTest
                 radius -= dt * 0.1f;
 
             if (keyboardState.IsKeyDown(Keys.X))
-                distribution += dt * 0.3f;
+                rotation += dt;
             if (keyboardState.IsKeyDown(Keys.Z))
-                distribution -= dt * 0.3f;
+                rotation -= dt;
 
-            tesselation = Math.Max(0, Math.Min(20, tesselation));
-            radius = Math.Max(0, Math.Min(1, radius));
-            distribution = Math.Max(0, Math.Min(1, distribution));
+            tesselation = Math.Max(0, Math.Min(30, tesselation));
+            radius = Math.Max(0, Math.Min(0.25f, radius));
 
             base.Update(gameTime);
         }
@@ -80,8 +79,8 @@ namespace ShaderTest
             //GraphicsDevice.RasterizerState = RasterizerState.CullNone;
             //GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            Matrix world = Matrix.CreateScale(10);
-            Matrix view = Matrix.CreateLookAt(new Vector3(0, -10, 5), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            Matrix world = Matrix.CreateRotationZ(rotation);// CreateScale(10);
+            Matrix view = Matrix.CreateLookAt(new Vector3(0, -1, 0.5f), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
             Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), (float)ResolutionX / (float)ResolutionY, 0.1f, 1000f);
 
             effect.Parameters["WorldViewProjection"].SetValue(world * view * projection);
@@ -106,11 +105,11 @@ namespace ShaderTest
         {
             string text = "Q and W for Tesselation: \n";
             text       += "A and S for Radius: \n";
-            text       += "Z and X for Distribution: \n";
+            text       += "Z and X for Rotation: \n";
 
             string values = tesselation.ToString() + "\n";
             values += radius.ToString() + "\n";
-            values += distribution.ToString() + "\n";
+            values += rotation.ToString() + "\n";
 
             spriteBatch.Begin();
             spriteBatch.DrawString(textFont, text, new Vector2(50, 50), Color.White);

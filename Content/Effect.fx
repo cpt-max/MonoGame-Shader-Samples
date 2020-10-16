@@ -3,19 +3,19 @@ float4x4 WorldViewProjection;
 float Tesselation;
 float Radius;
 
-struct VS_INPUT
+struct VS_IN
 {
-    float4 pos : POSITION;
+    float3 pos : POSITION;
     float3 norm : NORMAL;
 };
 
-struct VS_OUTPUT
+struct VS_OUT
 {
-    float4 worldPos : POSITION;
+    float3 worldPos : POSITION;
     float3 norm : NORMAL;
 };
 
-struct DS_OUTPUT
+struct DS_OUT
 {
     float4 pos : SV_POSITION;
     float3 norm : NORMAL;
@@ -24,9 +24,9 @@ struct DS_OUTPUT
 //================================================================================================
 // Vertex Shader
 //================================================================================================
-VS_OUTPUT VS(VS_INPUT input)
+VS_OUT VS(VS_IN input)
 {
-    VS_OUTPUT output;
+    VS_OUT output;
 
     output.worldPos = input.pos;
     output.norm = input.norm;
@@ -43,11 +43,11 @@ struct PatchConstantOut
 	float edges[4] : SV_TessFactor;
 	float inside[2]: SV_InsideTessFactor;
     float3 patchNorm : NORMAL;
+    float3 dir[4] : TEXCOORD0;
+    float3 midNorm[4] : NORMAL1;
 };
 
-PatchConstantOut PatchConstantFunc(
-	InputPatch<VS_OUTPUT, 4> cp,
-	uint patchID : SV_PrimitiveID)
+PatchConstantOut PatchConstantFunc(InputPatch<VS_OUT, 4> cp, uint patchID : SV_PrimitiveID)
 {
 	PatchConstantOut output;
 
@@ -59,8 +59,19 @@ PatchConstantOut PatchConstantFunc(
 	output.inside[0] = Tesselation;
 	output.inside[1] = Tesselation;
     
-    output.patchNorm = normalize(cross(cp[0].worldPos.xyz - cp[2].worldPos.xyz,
-		                     cp[3].worldPos.xyz - cp[1].worldPos.xyz));
+    output.dir[0] = normalize(cp[1].worldPos - cp[0].worldPos);
+    output.dir[1] = normalize(cp[2].worldPos - cp[1].worldPos);
+    output.dir[2] = normalize(cp[3].worldPos - cp[2].worldPos);
+    output.dir[3] = normalize(cp[0].worldPos - cp[3].worldPos);
+    
+    output.midNorm[0] = normalize(cp[0].norm + cp[1].norm);
+    output.midNorm[1] = normalize(cp[1].norm + cp[2].norm);
+    output.midNorm[2] = normalize(cp[2].norm + cp[3].norm);
+    output.midNorm[3] = normalize(cp[3].norm + cp[0].norm);
+    
+    output.patchNorm = normalize(cross(
+        cp[0].worldPos - cp[2].worldPos,
+        cp[3].worldPos - cp[1].worldPos));
 
 	return output;
 }
@@ -71,9 +82,9 @@ PatchConstantOut PatchConstantFunc(
 [outputcontrolpoints(4)]
 [patchconstantfunc("PatchConstantFunc")]
 [maxtessfactor(30.0)]
-VS_OUTPUT HS(InputPatch<VS_OUTPUT, 4> cp, uint i : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
+VS_OUT HS(InputPatch<VS_OUT, 4> cp, uint i : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
 {
-    VS_OUTPUT output;
+    VS_OUT output;
 
     output.worldPos = cp[i].worldPos;
     output.norm = cp[i].norm;
@@ -85,70 +96,41 @@ VS_OUTPUT HS(InputPatch<VS_OUTPUT, 4> cp, uint i : SV_OutputControlPointID, uint
 //================================================================================================
 // Domain Shader
 //================================================================================================
-float3 interpol(float3 corner0, float3 corner1, float3 corner2, float3 corner3, float2 edgeDist, float2 uvSign)
-{
-    float3 leftEdge  = normalize(corner3 - corner0);
-    float3 rightEdge = normalize(corner2 - corner1);
-    
-    float3 startLeft  = uvSign.x > 0 ? corner0 : corner3;
-    float3 startRight = uvSign.x > 0 ? corner1 : corner2;
-    
-    float3 midLeft  = startLeft  + leftEdge  * edgeDist.x;
-    float3 midRight = startRight + rightEdge * edgeDist.x;
-    
-    float3 startUp = uvSign.y > 0 ? midLeft : midRight;
-    float3 upEdge = normalize(midRight - midLeft);
-    
-    return startUp + upEdge * edgeDist.y;
-}
-
 [domain("quad")]
-DS_OUTPUT DS(const OutputPatch<VS_OUTPUT, 4> cp, float2 uv : SV_DomainLocation, PatchConstantOut patchConst)
+DS_OUT DS(const OutputPatch<VS_OUT, 4> cp, float2 uv : SV_DomainLocation, PatchConstantOut patchConst)
 {
-    DS_OUTPUT output;
+    DS_OUT output;
     
-    //float step = 1 / Tesselation;
-    //float nr = (Tesselation - 1) / 2;
-      
 	float2 uvSigned = uv * 2 - 1; 
     float2 uvSign = sign(uvSigned);
     float2 uvAbs = abs(uvSigned);
-    //float2 uvAbsPow = pow(uvAbs, Distribution);
-    float2 edgeDist = (1 - uvAbs) * uvSign * Radius;
-    
-    //float2 uvPow = (uvSign * uvAbsPow + 1) / 2;
-    
-    //float2 uvStart = 1 / Tesselation;
-    //float2 edgeClose = uvAbs - uvStart;
-    
-    // calculate position
-    /*
-    float3 leftEdge  = normalize(cp[3].worldPos - cp[0].worldPos);
-    float3 rightEdge = normalize(cp[2].worldPos - cp[1].worldPos);
-    
-    float3 startLeft  = uvSign.x > 0 ? cp[0].worldPos : cp[3].worldPos;
-    float3 startRight = uvSign.x > 0 ? cp[1].worldPos : cp[2].worldPos;
-    
-    float3 midLeft  = startLeft  + leftEdge  * edgeDist.x;
-    float3 midRight = startRight + rightEdge * edgeDist.x;
-    
-    float3 startUp = uvSign.y > 0 ? midLeft : midRight;
-    float3 upEdge = normalize(midRight - midLeft);
-    
-    float3 worldPos = startUp + upEdge * edgeDist.y;
-    */
-    // calculate normal
+    float2 relCornerDist = 1 - uvAbs;
+    float2 edgeDist = relCornerDist * uvSign * Radius;
 
- 
-    float3 worldPos = interpol(cp[0].worldPos.xyz, cp[1].worldPos.xyz, cp[2].worldPos.xyz, cp[3].worldPos.xyz, edgeDist, uvSign);
-    float3 norm     = interpol(cp[0].norm,     cp[1].norm,     cp[2].norm,     cp[3].norm,     edgeDist*8, uvSign);
+    int3 inds = uvSign.x > 0 ?
+                uvSign.y > 0 ? int3(1, -1,  2) : int3(2, 3,  2) :
+                uvSign.y > 0 ? int3(0, -1, -4) : int3(3, 3, -4);
     
-    float t = abs(edgeDist.x * edgeDist.y) * 100;
-    norm = norm * (1 - t) + patchConst.patchNorm * t;
-    norm = normalize(norm);
+    int cornerInd = inds.x;
+    int2 adjacentEdge = abs(inds.yz) - 1;
+    int2 adjacentEdgeDir = sign(inds.yz);
     
+    float3 cornerPos = cp[cornerInd].worldPos;
+    float3 dirX = patchConst.dir[adjacentEdge.x] * adjacentEdgeDir.x;
+    float3 dirY = patchConst.dir[adjacentEdge.y] * adjacentEdgeDir.y;
+    
+    float3 worldPos = cornerPos + dirX * edgeDist.x + dirY * edgeDist.y;
+    
+    // calculate normal
+    float3 cornerNorm = cp[cornerInd].norm;
+    float3 xNorm = lerp(cornerNorm, patchConst.midNorm[adjacentEdge.x], relCornerDist.x);
+    float3 yNorm = lerp(cornerNorm, patchConst.midNorm[adjacentEdge.y], relCornerDist.y);
+    float3 norm = lerp(xNorm + yNorm, patchConst.patchNorm, relCornerDist.x * relCornerDist.y);
+
+    worldPos -= cornerNorm * dot(1 - relCornerDist, 1 - relCornerDist) * Radius * 0.2; //0.4142135;
+
     output.pos = mul(float4(worldPos, 1), WorldViewProjection);
-    output.norm = abs(norm - patchConst.patchNorm); // ; // patchNorm; //  patch[0].worldPos.xyz;
+    output.norm = normalize(norm); 
 
     return output;
 }
@@ -156,7 +138,7 @@ DS_OUTPUT DS(const OutputPatch<VS_OUTPUT, 4> cp, float2 uv : SV_DomainLocation, 
 //================================================================================================
 // Pixel Shader
 //================================================================================================
-float4 PS(DS_OUTPUT input) : SV_TARGET
+float4 PS(DS_OUT input) : SV_TARGET
 {
     float3 col = input.norm; // float3((input.norm.xy + 1) / 2, input.norm.z);
     return float4(col, 1);
