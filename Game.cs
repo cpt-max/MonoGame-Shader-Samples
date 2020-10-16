@@ -17,9 +17,10 @@ namespace ShaderTest
         SpriteBatch spriteBatch;
         SpriteFont textFont;
 
-        float tesselation = 30;
-        float radius = 0.1f;
-        float rotation = 0;
+        float tesselation = 20;
+        float radius = 0.2f;
+        float rotation = (float)Math.PI * 5 / 4;
+        float test = 1;
 
         public ShaderTestGame()
         {
@@ -43,7 +44,7 @@ namespace ShaderTest
             effect = Content.Load<Effect>("Effect");
             textFont = Content.Load<SpriteFont>("TextFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            CreateMesh(ref vertexBuffer, ref indexBuffer);
+            CreateCubeMesh(ref vertexBuffer, ref indexBuffer);
         }
 
         protected override void Update(GameTime gameTime)
@@ -52,22 +53,27 @@ namespace ShaderTest
             KeyboardState keyboardState = Keyboard.GetState();
 
             if (keyboardState.IsKeyDown(Keys.W))
-                tesselation += dt * 5;
+                tesselation += dt * 10;
             if (keyboardState.IsKeyDown(Keys.Q))
-                tesselation -= dt * 5;
+                tesselation -= dt * 10;
 
             if (keyboardState.IsKeyDown(Keys.S))
-                radius += dt * 0.1f;
+                radius += dt * 0.3f;
             if (keyboardState.IsKeyDown(Keys.A))
-                radius -= dt * 0.1f;
+                radius -= dt * 0.3f;
 
             if (keyboardState.IsKeyDown(Keys.X))
                 rotation += dt;
             if (keyboardState.IsKeyDown(Keys.Z))
                 rotation -= dt;
 
+            if (keyboardState.IsKeyDown(Keys.D2))
+                test += dt * 1;
+            if (keyboardState.IsKeyDown(Keys.D1))
+                test -= dt * 1;
+
             tesselation = Math.Max(0, Math.Min(30, tesselation));
-            radius = Math.Max(0, Math.Min(0.25f, radius));
+            radius = Math.Max(0, Math.Min(0.5f, radius));
 
             base.Update(gameTime);
         }
@@ -80,12 +86,13 @@ namespace ShaderTest
             //GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             Matrix world = Matrix.CreateRotationZ(rotation);// CreateScale(10);
-            Matrix view = Matrix.CreateLookAt(new Vector3(0, -1, 0.5f), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            Matrix view = Matrix.CreateLookAt(new Vector3(0, -1, 0.6f), new Vector3(0, 0, 0.2f), new Vector3(0, 1, 0));
             Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), (float)ResolutionX / (float)ResolutionY, 0.1f, 1000f);
 
             effect.Parameters["WorldViewProjection"].SetValue(world * view * projection);
             effect.Parameters["Tesselation"].SetValue(1f + (int)(tesselation) * 2f);
             effect.Parameters["Radius"].SetValue(radius);
+            effect.Parameters["Test"].SetValue(test);
 
             foreach (var pass in effect.CurrentTechnique.Passes)
             {
@@ -110,6 +117,7 @@ namespace ShaderTest
             string values = tesselation.ToString() + "\n";
             values += radius.ToString() + "\n";
             values += rotation.ToString() + "\n";
+            values += test.ToString() + "\n";
 
             spriteBatch.Begin();
             spriteBatch.DrawString(textFont, text, new Vector2(50, 50), Color.White);
@@ -117,8 +125,44 @@ namespace ShaderTest
             spriteBatch.End();
         }
 
-        private void CreateMesh(ref VertexBuffer vertexBuffer, ref IndexBuffer indexBuffer)
+        private void CreateCubeMesh(ref VertexBuffer vertexBuffer, ref IndexBuffer indexBuffer)
         {
+            float s = 0.5f;
+            //float d = (float)Math.Sqrt(3);
+            float d = (float)Math.Sqrt(1.0/3);
+            //float h = 2 * s;
+
+            var vertices = new VertexPositionNormalTexture[]
+            {   
+                // top vertices
+                new VertexPositionNormalTexture(new Vector3(-s,  s, s),  new Vector3(-d,  d, d),  new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3( s,  s, s),  new Vector3( d,  d, d),  new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3( s, -s, s),  new Vector3( d, -d, d),  new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(-s, -s, s),  new Vector3(-d, -d, d),  new Vector2(0, 0)),
+                // bottom vertices
+                new VertexPositionNormalTexture(new Vector3(-s,  s, -s), new Vector3(-d,  d, -d), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3( s,  s, -s), new Vector3( d,  d, -d), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3( s, -s, -s), new Vector3( d, -d, -d), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(-s, -s, -s), new Vector3(-d, -d, -d), new Vector2(0, 0)),
+            };
+
+            vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionNormalTexture), vertices.Length, BufferUsage.WriteOnly);
+            vertexBuffer.SetData(vertices);
+
+            // create cube faces with clockwise indices
+            var indices = new int[24] 
+            {
+                0, 1, 2, 3, // top face
+                3, 2, 6, 7, // front face
+                0, 3, 7, 4, // left face
+                1, 0, 4, 5, // rear face
+                2, 1, 5, 6, // right face
+                7, 6, 5, 4, // bottom face
+            };
+
+            indexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(indices);
+            /*
             float px = 0.4330127f;
             float py = 0.25f;
             float ph = -1.5f;
@@ -173,7 +217,7 @@ namespace ShaderTest
             indices[31] = 0;
             
             indexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indices);
+            indexBuffer.SetData(indices);*/
         }
     }
 }
