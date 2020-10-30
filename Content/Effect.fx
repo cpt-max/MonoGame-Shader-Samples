@@ -57,10 +57,9 @@ struct HS_OUT
     float3 pos : POSITION;
     float3 norm : NORMAL;
     float3 sphereCenter : TEXCOORD0;
-    float3 roundingEdge[2] : TEXCOORD1;
-    float2 texCoord : TEXCOORD3;
-    float2 roundingTexCoord[2] : TEXCOORD4;
-    
+    float3 roundingEdge[3] : TEXCOORD1;
+    float2 texCoord : TEXCOORD4;
+    float2 roundingTexCoord[2] : TEXCOORD5;   
 };
 
 struct PatchConstOut
@@ -87,8 +86,8 @@ PatchConstOut PatchConstantFunc(InputPatch<VS_OUT, 4> cp, uint patchID : SV_Prim
 [domain("quad")]  // tri  quad  isoline
 [partitioning("fractional_odd")] // fractional_even  fractional_odd  pow2
 [outputtopology("triangle_cw")]  // triangle_cw  triangle_ccw  line
-[outputcontrolpoints(4)]
 [patchconstantfunc("PatchConstantFunc")]
+[outputcontrolpoints(4)]
 [maxtessfactor(30.0)]
 HS_OUT HS(InputPatch<VS_OUT, 4> cp, uint i : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
 {
@@ -128,22 +127,23 @@ HS_OUT HS(InputPatch<VS_OUT, 4> cp, uint i : SV_OutputControlPointID, uint patch
     float2 texCoord = cp[i].texCoord;
     float2 texChangeNext = cp[indNext].texCoord - texCoord;
     float2 texChangePrev = cp[indPrev].texCoord - texCoord;
-    
+  /*  
     float roundingEdgeFractionNext = roundingLengthNext / lengthNext;
     float roundingEdgeFractionPrev = roundingLengthPrev / lengthPrev;
     
     float2 roundingTexChangeNext = texChangeNext * roundingEdgeFractionNext;
     float2 roundingTexChangePrev = texChangePrev * roundingEdgeFractionPrev;
-
+*/
     // output
     output.pos = pos;
     output.norm = norm;
     output.sphereCenter = sphereCenter;
     output.roundingEdge[0] = dirToNext * roundingLengthNext;
     output.roundingEdge[1] = dirToPrev * roundingLengthPrev;
+    output.roundingEdge[2] = posToTouch;
     output.texCoord = cp[i].texCoord;
-    output.roundingTexCoord[0] = roundingTexChangeNext;
-    output.roundingTexCoord[1] = roundingTexChangePrev;
+    output.roundingTexCoord[0] = texChangeNext / lengthNext; //roundingTexChangeNext;
+    output.roundingTexCoord[1] = texChangePrev / lengthPrev; //roundingTexChangePrev;
     
 	return output;
 }
@@ -161,7 +161,7 @@ struct DS_OUT
 };
 
 [domain("quad")]
-DS_OUT DS(const OutputPatch<HS_OUT, 4> cp, float2 uv : SV_DomainLocation, PatchConstOut patchConst)
+DS_OUT DS(const OutputPatch<HS_OUT, 4> controlPoints, float2 uv : SV_DomainLocation, PatchConstOut patchConst)
 {
     DS_OUT output;
     
@@ -169,32 +169,34 @@ DS_OUT DS(const OutputPatch<HS_OUT, 4> cp, float2 uv : SV_DomainLocation, PatchC
     float2 uvCornerDist = min(uv, 1 - uv) * 2;
     float2 uvSign = sign(uv - 0.5);
 
-    // determine indices for vector arrays depending on which corner we are in
+    // determine array indices depending on which corner we are in
     int2 inds = uvSign.x > 0 ?
-                uvSign.y > 0 ? int2(1, 1) : int2(2, 0) :
+                uvSign.y > 0 ? int2(1, 1) : int2(2, 0):
                 uvSign.y > 0 ? int2(0, 0) : int2(3, 1);
     
     int cornerInd = inds.x;
     int edgeIndX = inds.y;
     int edgeIndY = 1 - inds.y;
+    
+    HS_OUT cp = controlPoints[cornerInd];
 
     // calculate position & normal
-    float3 cornerPos    = cp[cornerInd].pos;
-    float3 sphereCenter = cp[cornerInd].sphereCenter;
+    float3 edgeX = cp.roundingEdge[edgeIndX];
+    float3 edgeY = cp.roundingEdge[edgeIndY];
+    float3 edgeMid = cp.roundingEdge[2];
+       
+    float3 xStart = edgeX * uvCornerDist.x;
+    float3 xEnd = edgeY + (edgeMid - edgeY) * uvCornerDist.x;
+    float3 cornerToPos = lerp(xStart, xEnd, uvCornerDist.y);
+    float3 flatPos = cp.pos + cornerToPos;
     
-    float3 flatPos = cornerPos + 
-        cp[cornerInd].roundingEdge[edgeIndX] * uvCornerDist.x +
-        cp[cornerInd].roundingEdge[edgeIndY] * uvCornerDist.y;
-    
-    float3 norm = normalize(flatPos - sphereCenter);
-    float3 pos = sphereCenter + norm * Radius;
+    float3 norm = normalize(flatPos - cp.sphereCenter);
+    float3 pos = cp.sphereCenter + norm * Radius;
     
     // calculate texcoord
-    float2 cornerTexCoord = cp[cornerInd].texCoord;
-
-    float2 texCoord = cornerTexCoord +
-        cp[cornerInd].roundingTexCoord[edgeIndX] * uvCornerDist.x +
-        cp[cornerInd].roundingTexCoord[edgeIndY] * uvCornerDist.y;
+    float2 texCoord = cp.texCoord +
+        cp.roundingTexCoord[edgeIndX] * dot(cornerToPos, normalize(edgeX)) +
+        cp.roundingTexCoord[edgeIndY] * dot(cornerToPos, normalize(edgeY));
     
     // output
     output.worldPos = mul(float4(pos, 1), World).xyz;
@@ -222,7 +224,7 @@ float4 PS(DS_OUT input) : SV_TARGET
     float3 reflectVec = normalize(reflect(eyeVec, input.norm));  
     float reflectStrength = 0.2f + tex.x * 0.8f;
     col += CubeMap.Sample(CubeSampler, reflectVec) * reflectStrength;
-
+    
     return float4(col, 1);
 }
 
