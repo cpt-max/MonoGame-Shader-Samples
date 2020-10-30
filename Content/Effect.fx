@@ -32,9 +32,10 @@ struct VS_IN
 
 struct VS_OUT
 {
-    float3 pos : POSITION;
+    float4 pos : SV_POSITION;
+    float3 worldPos : TEXCOORD0;
     float3 norm : NORMAL;
-    float2 texCoord : TEXCOORD;
+    float2 texCoord : TEXCOORD1;
 };
 
 VS_OUT VS(VS_IN input)
@@ -42,7 +43,8 @@ VS_OUT VS(VS_IN input)
     VS_OUT output;
 
     // pass the corner points through to the hull shader unaltered
-    output.pos = input.pos;
+    output.pos = float4(input.pos, 1);
+    output.worldPos = input.pos;
     output.norm = input.norm;
     output.texCoord = input.texCoord;
 
@@ -54,12 +56,13 @@ VS_OUT VS(VS_IN input)
 //================================================================================================
 struct HS_OUT
 {
-    float3 pos : POSITION;
+    float4 pos : SV_POSITION;
+    float3 worldPos : TEXCOORD0;
     float3 norm : NORMAL;
-    float3 sphereCenter : TEXCOORD0;
-    float3 roundingEdge[3] : TEXCOORD1;
-    float2 texCoord : TEXCOORD4;
-    float2 roundingTexCoord[2] : TEXCOORD5;   
+    float3 sphereCenter : TEXCOORD1;
+    float3 roundingEdge[3] : TEXCOORD2;
+    float2 texCoord : TEXCOORD5;
+    float2 roundingTexCoord[2] : TEXCOORD6;   
 };
 
 struct PatchConstOut
@@ -93,15 +96,15 @@ HS_OUT HS(InputPatch<VS_OUT, 4> cp, uint i : SV_OutputControlPointID, uint patch
 {
     HS_OUT output;
 
-    float3 pos = cp[i].pos;
+    float3 pos = cp[i].worldPos;
     float3 norm = cp[i].norm;
     
     // adjacent edges
     int indNext = (i + 1) % 4;
     int indPrev = (i - 1) % 4;
     
-    float3 posNext = cp[indNext].pos;
-    float3 posPrev = cp[indPrev].pos;
+    float3 posNext = cp[indNext].worldPos;
+    float3 posPrev = cp[indPrev].worldPos;
     
     float3 dirToNext = posNext - pos;
     float3 dirToPrev = posPrev - pos;
@@ -135,7 +138,8 @@ HS_OUT HS(InputPatch<VS_OUT, 4> cp, uint i : SV_OutputControlPointID, uint patch
     float2 roundingTexChangePrev = texChangePrev * roundingEdgeFractionPrev;
 */
     // output
-    output.pos = pos;
+    output.pos = float4(pos, 1);
+    output.worldPos = pos;
     output.norm = norm;
     output.sphereCenter = sphereCenter;
     output.roundingEdge[0] = dirToNext * roundingLengthNext;
@@ -154,10 +158,10 @@ HS_OUT HS(InputPatch<VS_OUT, 4> cp, uint i : SV_OutputControlPointID, uint patch
 struct DS_OUT
 {
     float4 pos : SV_POSITION;
-    float3 worldPos : POSITION;
+    float3 worldPos : TEXCOORD0;
+    float2 texCoord : TEXCOORD1;
     float3 norm : NORMAL;
     float3 color : COLOR;
-    float2 texCoord : TEXCOORD;
 };
 
 [domain("quad")]
@@ -188,7 +192,7 @@ DS_OUT DS(const OutputPatch<HS_OUT, 4> controlPoints, float2 uv : SV_DomainLocat
     float3 xStart = edgeX * uvCornerDist.x;
     float3 xEnd = edgeY + (edgeMid - edgeY) * uvCornerDist.x;
     float3 cornerToPos = lerp(xStart, xEnd, uvCornerDist.y);
-    float3 flatPos = cp.pos + cornerToPos;
+    float3 flatPos = cp.worldPos + cornerToPos;
     
     float3 norm = normalize(flatPos - cp.sphereCenter);
     float3 pos = cp.sphereCenter + norm * Radius;
