@@ -1,8 +1,8 @@
-# Edge-rounding Tesselation Shader for MonoGame
+# Edge-rounding Tessellation Shader for MonoGame
 
 ![Screenshots](/EdgeRounding.jpg?raw=true)
 
-This sample uses a hull and domain shader to round off the edges of a mesh. The mesh is created out of quad patches. The rounding radius and tesseltation factor can be changed dynamically.  
+This sample uses a hull and domain shader to round off the edges of a mesh. The mesh is created out of quad patches. The rounding radius and tesselltation factor can be changed dynamically.  
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.

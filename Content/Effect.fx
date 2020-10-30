@@ -91,7 +91,7 @@ PatchConstOut PatchConstantFunc(InputPatch<VS_OUT, 4> cp, uint patchID : SV_Prim
 [outputtopology("triangle_cw")]  // triangle_cw  triangle_ccw  line
 [patchconstantfunc("PatchConstantFunc")]
 [outputcontrolpoints(4)]
-[maxtessfactor(30.0)]
+[maxtessfactor(60.0)]
 HS_OUT HS(InputPatch<VS_OUT, 4> cp, uint i : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
 {
     HS_OUT output;
