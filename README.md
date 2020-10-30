@@ -1,4 +1,10 @@
-# Hull, Domain and Geometry shader sample for MonoGame
+# Tesselation and Geometry Shader for MonoGame
+
+![Screenshot](/Screenshot.jpg?raw=true)
+
+This sample uses a very simple hull and domain shader to tesselate a single input triangle into many sub triangles. Each sub triangle is then passed into a geometry shader to generate even more triangles along it's edges, which creates a wireframe-like effect.
+
+A more real-world tesselation sample based on quad patches can be found in the [Edge-rounding branch](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/edgerounding) of this repository.
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.
