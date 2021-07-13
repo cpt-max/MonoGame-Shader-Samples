@@ -29,6 +29,7 @@
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
+/processorParam:Defines=
 /build:Effect.fx
 
 #begin TextFont.spritefont
