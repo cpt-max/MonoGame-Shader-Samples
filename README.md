@@ -17,7 +17,7 @@ The particle buffer is used directly by the vertex shader that draws the particl
 - Make sure MonoGame.Framework.WindowsDX from this [MonoGame fork](https://github.com/cpt-max/MonoGame/tree/compute_shader) is referenced. 
 - Rebuild the content in ShaderTestDX.mgcb using the MGCB Editor from that fork. 
 
-
+[Download the prebuilt executables for Windows](https://www.dropbox.com/s/c5h81mtgw5pnctu/Monogame%20Shader%20Samples.zip?dl=1)
 <br><br>
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 
