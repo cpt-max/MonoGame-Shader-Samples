@@ -20,7 +20,7 @@ namespace ShaderTest
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
 
-        const int ComputeGroupSize = 10;
+        const int ComputeGroupSize = 64; // needs to be the same as the ComputeGroupSize define in the compute shader
         const int MaxCircleCount = 10000;
 
         int circleCount { get { return (int)circleCountFloat; } }
@@ -145,8 +145,7 @@ namespace ShaderTest
             {
                 Point size = new Point((int)circleSize);
                 Point radius = new Point((int)(circleSize/2));
-                Point pos = circles[i].pos.ToPoint() - radius;
-                
+                Point pos = circles[i].pos.ToPoint() - radius;    
                 Color col;
                 switch(collisions[i].collisionCount)
                 {
@@ -165,13 +164,13 @@ namespace ShaderTest
 
         private void DrawText()
         {
-            string text = "A and S for Circle Size: \n"; 
-            text +=       "Q and W for Circle Count: \n";
+            string text = "Q and W for Circle Count: \n"; 
+            text +=       "A and S for Circle Size: \n";
             text +=       "Collision Checks: \n";
             text +=       "Space for Randomize\n";
 
-            string values = circleSize.ToString("0") + "\n";
-            values += circleCount.ToString() + "\n";
+            string values = circleCount.ToString() + "\n";
+            values += circleSize.ToString("0") + "\n";
             values += (circleCount * circleCount).ToString() + "\n";
 
             spriteBatch.Begin();
