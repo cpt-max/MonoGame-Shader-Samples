@@ -17,6 +17,7 @@ This sample uses a compute shader to do brute-force collision checks between cir
 - Rebuild the content in ShaderTestDX.mgcb using the MGCB Editor from that fork. 
 
 
+[Download the prebuilt executables for Windows](https://www.dropbox.com/s/c5h81mtgw5pnctu/Monogame%20Shader%20Samples.zip?dl=1)
 <br><br>
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 
