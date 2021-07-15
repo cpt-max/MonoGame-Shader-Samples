@@ -227,7 +227,7 @@ float4 PS(DS_OUT input) : SV_TARGET
     float3 eyeVec = normalize(CamPos - input.worldPos);
     float3 reflectVec = normalize(reflect(eyeVec, input.norm));  
     float reflectStrength = 0.2f + tex.x * 0.8f;
-    col += CubeMap.Sample(CubeSampler, reflectVec) * reflectStrength;
+    col += CubeMap.Sample(CubeSampler, reflectVec).xyz * reflectStrength;
     
     return float4(col, 1);
 }
