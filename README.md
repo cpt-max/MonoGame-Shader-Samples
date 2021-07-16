@@ -1,7 +1,7 @@
 # MonoGame Shader Samples Overview
 
 Each sample is in a separate branch of this repository.<br>
-The samples are based on a [custom MonoGame fork](https://github.com/cpt-max/MonoGame/tree/compute_shader), that adds tesselation, geometry and compute shaders.<br>
+The samples are based on a [custom MonoGame fork](https://github.com/MonoGame/MonoGame/pull/7533), that adds tesselation, geometry and compute shaders.<br>
 Lazy people can [download the prebuilt executables for Windows](https://www.dropbox.com/s/c5h81mtgw5pnctu/Monogame%20Shader%20Samples.zip?dl=1).
 <br><br>
 
