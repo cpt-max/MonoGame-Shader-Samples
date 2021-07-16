@@ -5,7 +5,7 @@
 
 This sample uses a very simple hull and domain shader to tessellate a single input triangle into many sub triangles. Each sub triangle is then passed into a geometry shader to generate even more triangles along it's edges, which creates a wireframe-like effect.
 
-A more real-world tessellation sample based on quad patches can be found in the [Edge-rounding branch](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/edgerounding) of this repository.
+You can switch between different techniques, which effectively lets you disable tessellation and/or the geometry shader.
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.
