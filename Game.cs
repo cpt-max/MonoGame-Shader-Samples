@@ -34,17 +34,19 @@ namespace ShaderTest
         SpriteFont textFont;
 
         StructuredBuffer particleBuffer; // stores all the particle information, will be updated by the compute shader
-        VertexBuffer quadVertexBuffer; // used for drawing the particles
-        IndexBuffer quadIndexBuffer;   // used for drawing the particles
+        VertexBuffer vertexBuffer; // used for drawing the particles
 
         public ShaderTestGame()
         {
-            //GraphicsAdapter.UseDebugLayers = true;
             Content.RootDirectory = "Content";
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;
+
+            //graphics.SynchronizeWithVerticalRetrace = false;
+            //IsFixedTimeStep = false;
+            //GraphicsAdapter.UseDebugLayers = true;
         }
 
         protected override void Initialize()
@@ -61,10 +63,10 @@ namespace ShaderTest
             texture = Content.Load<Texture2D>("Texture");
             textFont = Content.Load<SpriteFont>("TextFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), MaxParticleCount, BufferUsage.WriteOnly);
             particleBuffer = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, true);
 
-            FillParticlesBufferRandomly();
-            CreateQuadBufferForParticleRendering(ref quadVertexBuffer, ref quadIndexBuffer);
+            FillParticlesBufferRandomly(); 
         }
 
         protected override void Update(GameTime gameTime)
@@ -137,9 +139,8 @@ namespace ShaderTest
             {
                 pass.Apply();
 
-                GraphicsDevice.SetVertexBuffer(quadVertexBuffer);
-                GraphicsDevice.Indices = quadIndexBuffer;
-                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, particleCount * 2);
+                GraphicsDevice.SetVertexBuffer(vertexBuffer);
+                GraphicsDevice.DrawPrimitives(PrimitiveType.PointList, 0, particleCount);
             }
         }
 
@@ -186,36 +187,6 @@ namespace ShaderTest
             }
 
             particleBuffer.SetData(particles);
-        }
-
-        private void CreateQuadBufferForParticleRendering(ref VertexBuffer quadVertexBuffer, ref IndexBuffer quadIndexBuffer)
-        {
-            var vertices = new VertexPositionTexture[MaxParticleCount * 4];
-            var indices = new int[MaxParticleCount * 6];
-
-            for (int i = 0; i < MaxParticleCount; i++)
-            {
-                int vInd = i * 4;
-                int iInd = i * 6;
-
-                vertices[vInd + 0] = new VertexPositionTexture(new Vector3(-1,  1, 0), new Vector2(0, 0));
-                vertices[vInd + 1] = new VertexPositionTexture(new Vector3( 1,  1, 0), new Vector2(1, 0));
-                vertices[vInd + 2] = new VertexPositionTexture(new Vector3( 1, -1, 0), new Vector2(1, 1));
-                vertices[vInd + 3] = new VertexPositionTexture(new Vector3(-1, -1, 0), new Vector2(0, 1));
-
-                indices[iInd + 0] = vInd + 0;
-                indices[iInd + 1] = vInd + 1;
-                indices[iInd + 2] = vInd + 2;
-                indices[iInd + 3] = vInd + 0;
-                indices[iInd + 4] = vInd + 2;
-                indices[iInd + 5] = vInd + 3;
-            };
-
-            quadVertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
-            quadVertexBuffer.SetData(vertices);
-
-            quadIndexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
-            quadIndexBuffer.SetData(indices);
         }
     }
 }
