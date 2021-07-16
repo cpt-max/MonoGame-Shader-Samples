@@ -25,7 +25,7 @@ This sample uses a compute shader to update particles on the GPU. The particle b
 <br clear="left"/><br><br>
 
 ## [Particle Compute & Geometry Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
-[<img align="left" width="400" src="Screenshots/ComputeParticles.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
+[<img align="left" width="400" src="Screenshots/ComputeGeometryParticles.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
 
 This is the same compute shader as above, the drawing of the particles is different however. The above sample feeds a vertex buffer filled with quads to the vertex shader. This sample feeds point primitives to the vertex shader, and generates the final quads in a geometry shader.   
 
