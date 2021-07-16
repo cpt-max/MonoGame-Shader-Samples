@@ -24,6 +24,13 @@ This sample uses a compute shader to update particles on the GPU. The particle b
 
 <br clear="left"/><br><br>
 
+## [Particle Compute & Geometry Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
+[<img align="left" width="400" src="Screenshots/ComputeParticles.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
+
+This is the same compute shader as above, the drawing of the particles is different however. The above sample feeds a vertex buffer filled with quads to the vertex shader. This sample feeds point primitives to the vertex shader, and generates the final quads in a geometry shader.   
+
+<br clear="left"/><br><br>
+
 ## [Collision Test Compute Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_cpu)
 [<img align="left" width="400" src="Screenshots/ComputeCircles.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_cpu)
 This sample uses a compute shader to do brute-force collision checks between circles. The buffer containing the collision results is then downloaded to the CPU, in order to color the circles according to how many collisions they are involved in.
