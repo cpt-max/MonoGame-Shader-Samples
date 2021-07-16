@@ -39,12 +39,15 @@ namespace ShaderTest
 
         public ShaderTestGame()
         {
-            //GraphicsAdapter.UseDebugLayers = true;
             Content.RootDirectory = "Content";
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;
+
+            //graphics.SynchronizeWithVerticalRetrace = false;
+            //IsFixedTimeStep = false;
+            //GraphicsAdapter.UseDebugLayers = true;
         }
 
         protected override void Initialize()

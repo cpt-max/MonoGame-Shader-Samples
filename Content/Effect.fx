@@ -29,7 +29,7 @@ void CS(uint3 localID : SV_GroupThreadID, uint3 dispatchID : SV_GroupID,
     
     p.pos += p.vel * DeltaTime; // move
     p.pos -= (p.pos >  1) * 2; // wrap on border
-    p.pos += (p.pos < -1) * 2; // wrap on borders
+    p.pos += (p.pos < -1) * 2; // wrap on border
     
     Particles[globalID.x] = p;
 }
