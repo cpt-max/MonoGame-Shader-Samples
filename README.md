@@ -5,7 +5,13 @@
 ![Screenshots](/Screenshot.jpg?raw=true)
 
 This sample uses a compute shader to update particles on the GPU. 
-The particle buffer is used directly by the vertex shader that draws the particles. Since no data needs to be downloaded to the CPU, this method is very fast.  
+The particle buffer is used directly by the vertex shader that draws the particles. Since no data needs to be downloaded to the CPU, this method is very fast.
+
+For the FPS counter to make sense, you have to outcomment 2 lines
+```
+graphics.SynchronizeWithVerticalRetrace = false;
+IsFixedTimeStep = false;
+```
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.
