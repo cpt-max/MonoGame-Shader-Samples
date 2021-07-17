@@ -164,13 +164,13 @@ namespace ShaderTest
 
         private void DrawText()
         {
-            string text = "Q and W for Circle Count: \n"; 
-            text +=       "A and S for Circle Size: \n";
+            string text = "Q and W for Circle Size: \n"; 
+            text +=       "A and S for Circle Count: \n";
             text +=       "Collision Checks: \n";
             text +=       "Space for Randomize\n";
 
-            string values = circleCount.ToString() + "\n";
-            values += circleSize.ToString("0") + "\n";
+            string values = circleSize.ToString("0") + "\n";
+            values += circleCount.ToString() + "\n";
             values += (circleCount * circleCount).ToString() + "\n";
 
             spriteBatch.Begin();
