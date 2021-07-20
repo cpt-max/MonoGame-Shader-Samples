@@ -5,50 +5,33 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ShaderTest
 {
-    struct Circle
-    {
-        public Vector2 pos;
-    };
-
-    struct Collision
-    {
-        public int collisionCount;
-    };
-
     public class ShaderTestGame : Game
     {
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
 
-        const int ComputeGroupSize = 64; // needs to be the same as the ComputeGroupSize define in the compute shader
-        const int MaxCircleCount = 10000;
-
-        int circleCount { get { return (int)circleCountFloat; } }
-        float circleCountFloat = 50;
-        float circleSize = 80;
-
-        Circle[] circles = new Circle[MaxCircleCount];
-        Collision[] collisions = new Collision[MaxCircleCount];
-
-        StructuredBuffer circlesBuffer;
-        StructuredBuffer collisionsBuffer;
+        const int ComputeGroupSizeXY = 8; // needs to be the same as the GroupSizeXY defined in the compute shader
 
         GraphicsDeviceManager graphics;
         Effect effect;
-        Texture2D texture;
+        RenderTarget2D renderTarget;
+        Texture2D circleTexture;
+        Texture2D computeTexture;
         SpriteBatch spriteBatch;
         SpriteFont textFont;
-
-        Random rand = new Random();
+    
+        bool initRenderTarget = true;
+        int pixelOffsetX;
 
         public ShaderTestGame()
         {
-            //GraphicsAdapter.UseDebugLayers = true;
             Content.RootDirectory = "Content";
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;
+
+            //GraphicsAdapter.UseDebugLayers = true;
         }
 
         protected override void Initialize()
@@ -62,58 +45,34 @@ namespace ShaderTest
         protected override void LoadContent()
         {
             effect = Content.Load<Effect>("Effect");
-            texture = Content.Load<Texture2D>("Texture");
+            circleTexture = Content.Load<Texture2D>("Texture");
             textFont = Content.Load<SpriteFont>("TextFont");
+
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            circlesBuffer = new StructuredBuffer(GraphicsDevice, typeof(Circle), MaxCircleCount, BufferUsage.None, false);
-            collisionsBuffer = new StructuredBuffer(GraphicsDevice, typeof(Collision), MaxCircleCount, BufferUsage.None, true);
-
-            FillBufferWithRandomCircles();
-        }
-
-        private void FillBufferWithRandomCircles()
-        {
-            for (int i = 0; i < MaxCircleCount; i++)
-            {
-                circles[i].pos = new Vector2(
-                    (float)rand.NextDouble() * ResolutionX,
-                    (float)rand.NextDouble() * ResolutionY);
-            }
-
-            circlesBuffer.SetData(circles);
+            renderTarget = new RenderTarget2D(GraphicsDevice, ResolutionX, ResolutionY);
+            computeTexture = new Texture2D(GraphicsDevice, ResolutionX, ResolutionY, false, SurfaceFormat.Color, ShaderAccess.ReadWrite);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             KeyboardState keyboardState = Keyboard.GetState();
 
-            if (keyboardState.IsKeyDown(Keys.W))
-                circleSize += dt * circleSize;
-            if (keyboardState.IsKeyDown(Keys.Q))
-                circleSize -= dt * circleSize;
-
-            if (keyboardState.IsKeyDown(Keys.S))
-                circleCountFloat += dt * circleCountFloat;
-            if (keyboardState.IsKeyDown(Keys.A))
-                circleCountFloat -= dt * circleCountFloat;
-
-            circleSize = Math.Max(5, Math.Min(300, circleSize));
-            circleCountFloat = Math.Max(1, Math.Min(MaxCircleCount, circleCountFloat));      
-
             if (keyboardState.IsKeyDown(Keys.Space))
-                FillBufferWithRandomCircles();
+                initRenderTarget = true;
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            graphics.GraphicsDevice.Clear(Color.Black);
+            if (initRenderTarget)
+                InitRenderTarget(); // draw a bunch of circles
 
             RunCompute();
-            DrawCircles();
+
+            DrawTextureToTarget(computeTexture, renderTarget); // update the render target, it will be the input for next frame's compute iteration
+            DrawTextureToTarget(computeTexture, null); // draw also to backbuffer, so we can see something
+
             DrawText();
 
             base.Draw(gameTime);
@@ -121,61 +80,70 @@ namespace ShaderTest
 
         private void RunCompute()
         {
-            effect.Parameters["ObjectCount"].SetValue(circleCount);
-            effect.Parameters["ObjectSize"].SetValue(circleSize);
-            effect.Parameters["Inputs"].SetValue(circlesBuffer);
-            effect.Parameters["Outputs"].SetValue(collisionsBuffer);
+            effect.Parameters["Input"].SetValue(renderTarget);
+            effect.Parameters["Output"].SetValue(computeTexture);
+            effect.Parameters["StartX"].SetValue(pixelOffsetX);
+            effect.Parameters["Width"].SetValue(ResolutionX);          
 
             foreach (var pass in effect.CurrentTechnique.Passes)
             {
                 pass.ApplyCompute();
 
-                int dispatchCount = (int)Math.Ceiling((double)circleCount / ComputeGroupSize);
-                GraphicsDevice.DispatchCompute(dispatchCount, 1, 1);
+                int groupCountX = ResolutionX / ComputeGroupSizeXY / 2; // the division by 2 is because a single thread operates on a pair of pixels, not on individual pixels
+                int groupCountY = ResolutionY / ComputeGroupSizeXY;
+
+                GraphicsDevice.DispatchCompute(groupCountX, groupCountY, 1);
             }
 
-            collisionsBuffer.GetData(collisions, 0, circleCount);
+            // alternate the x-offset btw 0 and 1, to make sure we don't pair up the same pixels every frame,
+            // which would make it impossible to sort the whole image
+            pixelOffsetX = pixelOffsetX == 0 ? 1 : 0;
         }
 
-        private void DrawCircles()
+        private void InitRenderTarget()
         {
-            spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearClamp);
+            Random rand = new Random();
 
-            for (int i = 0; i < circleCount; i++)
+            GraphicsDevice.SetRenderTarget(renderTarget);
+            GraphicsDevice.Clear(Color.Black);
+
+            spriteBatch.Begin();
+
+            for (int i = 0; i < 100; i++)
             {
-                Point size = new Point((int)circleSize);
-                Point radius = new Point((int)(circleSize/2));
-                Point pos = circles[i].pos.ToPoint() - radius;    
-                Color col;
-                switch(collisions[i].collisionCount)
-                {
-                    case 0: col = new Color(255, 255, 255); break;
-                    case 1: col = new Color(86,255,0); break;
-                    case 2: col = new Color(255, 80, 235); break;
-                    case 3: col = new Color(255, 231, 0); break;
-                    default: col = new Color(0, 175, 255); break;
-                }
+                var pos = new Vector2(
+                    (float)rand.NextDouble() * ResolutionX - 128,
+                    (float)rand.NextDouble() * ResolutionY - 128);
 
-                spriteBatch.Draw(texture, new Rectangle(pos, size), null, col);
+                var col = new Color(
+                    (float)rand.NextDouble(),
+                    (float)rand.NextDouble(),
+                    (float)rand.NextDouble());
+
+                spriteBatch.Draw(circleTexture, pos, col);
             }
                 
-            spriteBatch.End(); 
+            spriteBatch.End();
+
+            GraphicsDevice.SetRenderTarget(null);
+            initRenderTarget = false;
+        }
+
+        private void DrawTextureToTarget(Texture2D tex, RenderTarget2D target)
+        {
+            GraphicsDevice.SetRenderTarget(target);
+
+            spriteBatch.Begin();
+            spriteBatch.Draw(tex, Vector2.Zero, Color.White);
+            spriteBatch.End();
         }
 
         private void DrawText()
         {
-            string text = "Q and W for Circle Size: \n"; 
-            text +=       "A and S for Circle Count: \n";
-            text +=       "Collision Checks: \n";
-            text +=       "Space for Randomize\n";
-
-            string values = circleSize.ToString("0") + "\n";
-            values += circleCount.ToString() + "\n";
-            values += (circleCount * circleCount).ToString() + "\n";
+            string text = "Press Space to Reset\n"; 
 
             spriteBatch.Begin();
             spriteBatch.DrawString(textFont, text, new Vector2(30, 30), Color.White);
-            spriteBatch.DrawString(textFont, values, new Vector2(1050, 30), Color.White);
             spriteBatch.End();
         }
     }

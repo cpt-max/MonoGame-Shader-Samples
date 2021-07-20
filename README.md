@@ -2,9 +2,11 @@
 
 # Collision Test Compute Shader for MonoGame
 
-![Screenshots](/Screenshot.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview/Screenshots/PixelSort.jpg?raw=true)
 
-This sample uses a compute shader to do brute-force collision checks between circles. The buffer containing the collision results is then downloaded to the CPU, in order to color the circles according to how many collisions they are involved in.  
+This sample uses a compute shader to sort pixels in a texture horizontally by hue.<br>
+For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.<br>
+While this could also be done using Render-to-texture, it becomes easier to program, and probably faster, in a compute shader. This is because each compute thread can write to multiple pixels, which simplifies the code, and reduces the number of total threads and texture reads required.  
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.

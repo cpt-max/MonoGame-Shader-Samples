@@ -1,43 +1,47 @@
-﻿struct Input
+﻿float HueFromRGB(float3 rgb)
 {
-    float2 pos;
-};
-
-struct Output
-{
-    int collisions;
-};
-
-StructuredBuffer<Input> Inputs;
-RWStructuredBuffer<Output> Outputs;
-
-int ObjectCount;
-float ObjectSize;
+    float minimum = min(rgb.r, min(rgb.g, rgb.b));
+    float maximum = max(rgb.r, max(rgb.g, rgb.b));  
+    float delta = maximum - minimum;
+    
+    float hue = delta == 0 ? 0 :
+        (rgb.r == maximum) ?     (rgb.g - rgb.b) / delta :
+        (rgb.g == maximum) ? 2 + (rgb.b - rgb.r) / delta :
+                             4 + (rgb.r - rgb.g) / delta;
+    
+    hue *= 60;
+    return hue >= 0 ? hue : hue + 360;
+}
 
 //================================================================================================
 // Compute Shader
 //================================================================================================
-#define ComputeGroupSize 64
+#define GroupSizeXY 8
 
-[numthreads(ComputeGroupSize, 1, 1)]
-void CS(uint3 localID : SV_GroupThreadID, uint3 dispatchID : SV_GroupID,
+Texture2D<float4> Input;
+RWTexture2D<float4> Output;
+
+int StartX;
+int Width;
+
+[numthreads(GroupSizeXY, GroupSizeXY, 1)]
+void CS(uint3 localID : SV_GroupThreadID, uint3 grouphID : SV_GroupID,
 	    uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
 {
-    float2 pos = Inputs[globalID.x].pos;
-    int collisions = 0;
+    uint2 idL = uint2(globalID.x * 2 + StartX, globalID.y);
+    uint2 idR = uint2(idL.x + 1, idL.y);
+
+    float3 colL = Input[idL].xyz;
+    float3 colR = Input[idR].xyz;
     
-    for (int i = 0; i < ObjectCount; i++)
-    {
-        if ((uint)i == globalID.x)  // don't collide with yourself
-            continue;
-        
-        float2 posOther = Inputs[i].pos;
-        float dist = distance(pos, posOther);
-        if (dist < ObjectSize)
-            collisions++;
-    }
-    
-    Outputs[globalID.x].collisions = collisions;
+    float hueL = HueFromRGB(colL);
+    float hueR = HueFromRGB(colR);
+      
+    bool exceedBorder = idR.x >= (uint)Width;
+    bool swap = hueL > hueR && !exceedBorder;
+
+    Output[idL] = float4(swap ? colR : colL, 1);
+    Output[idR] = float4(swap ? colL : colR, 1);
 }
 
 //================================================================================================
