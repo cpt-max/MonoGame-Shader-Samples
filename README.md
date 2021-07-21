@@ -33,7 +33,7 @@ This sample uses a compute shader to do brute-force collision checks between cir
 <br clear="left"/><br>
 
 ## [Pixel-Sort Compute Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_texture)
-[<img align="left" width="400" src="Screenshots/PixelSort.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_texture)
+[<img align="left" width="300" src="Screenshots/PixelSort.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_texture)
 This sample uses a compute shader to sort pixels in a texture horizontally by hue.
 For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.
 <br clear="left"/><br>
