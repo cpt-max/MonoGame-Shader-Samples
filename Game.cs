@@ -82,7 +82,7 @@ namespace ShaderTest
         {
             effect.Parameters["Input"].SetValue(renderTarget);
             effect.Parameters["Output"].SetValue(computeTexture);
-            effect.Parameters["StartX"].SetValue(pixelOffsetX);
+            effect.Parameters["OffsetX"].SetValue(pixelOffsetX);
             effect.Parameters["Width"].SetValue(ResolutionX);          
 
             foreach (var pass in effect.CurrentTechnique.Passes)

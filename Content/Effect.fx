@@ -21,27 +21,29 @@
 Texture2D<float4> Input;
 RWTexture2D<float4> Output;
 
-int StartX;
 int Width;
+int OffsetX;
 
 [numthreads(GroupSizeXY, GroupSizeXY, 1)]
 void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
         uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
 {
-    uint2 idL = uint2(globalID.x * 2 + StartX, globalID.y);
+    // read two adjacent pixels from the texture
+    // swap them if they are not already ordered by acending hue
+    uint2 idL = uint2(globalID.x * 2 + OffsetX, globalID.y);
     uint2 idR = uint2(idL.x + 1, idL.y);
 
-    float3 colL = Input[idL].xyz;
-    float3 colR = Input[idR].xyz;
+    float4 colL = Input[idL];
+    float4 colR = Input[idR];
     
-    float hueL = HueFromRGB(colL);
-    float hueR = HueFromRGB(colR);
+    float hueL = HueFromRGB(colL.rgb);
+    float hueR = HueFromRGB(colR.rgb);
       
     bool exceedBorder = idR.x >= (uint)Width;
     bool swap = hueL > hueR && !exceedBorder;
 
-    Output[idL] = float4(swap ? colR : colL, 1);
-    Output[idR] = float4(swap ? colL : colR, 1);
+    Output[idL] = swap ? colR : colL;
+    Output[idR] = swap ? colL : colR;
 }
 
 //================================================================================================
