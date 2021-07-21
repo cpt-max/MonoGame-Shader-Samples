@@ -1,7 +1,7 @@
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 # Tessellation and Geometry Shader for MonoGame
 
-![Screenshot](/Screenshot.jpg?raw=true)
+![Screenshot](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/TesselationGeometry.jpg?raw=true)
 
 This sample uses a very simple hull and domain shader to tessellate a single input triangle into many sub triangles. Each sub triangle is then passed into a geometry shader to generate even more triangles along it's edges, which creates a wireframe-like effect.
 
