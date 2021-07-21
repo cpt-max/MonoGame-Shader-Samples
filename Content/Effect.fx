@@ -26,7 +26,7 @@ int Width;
 
 [numthreads(GroupSizeXY, GroupSizeXY, 1)]
 void CS(uint3 localID : SV_GroupThreadID, uint3 grouphID : SV_GroupID,
-	    uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
+        uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
 {
     uint2 idL = uint2(globalID.x * 2 + StartX, globalID.y);
     uint2 idR = uint2(idL.x + 1, idL.y);
