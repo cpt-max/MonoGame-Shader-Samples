@@ -17,7 +17,7 @@ namespace ShaderTest
         const int ResolutionY = 720;
 
         const int MaxParticleCount = 1000000;
-        const int ComputeGroupSize = 256; // has to be the same as the ComputeGroupSize define in the compute shader 
+        const int ComputeGroupSize = 256; // has to be the same as the GroupSize define in the compute shader 
 
         int particleCount = 10000;
         float fps;
@@ -64,7 +64,7 @@ namespace ShaderTest
             textFont = Content.Load<SpriteFont>("TextFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
             vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), MaxParticleCount, BufferUsage.WriteOnly);
-            particleBuffer = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, true);
+            particleBuffer = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, ShaderAccess.ReadWrite);
 
             FillParticlesBufferRandomly(); 
         }
@@ -104,7 +104,7 @@ namespace ShaderTest
 
         protected override void Draw(GameTime gameTime)
         {
-            graphics.GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.Black);
 
             ComputeParticles(gameTime);
 

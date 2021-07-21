@@ -7,7 +7,7 @@
 //=============================================================================
 // Compute Shader
 //=============================================================================
-#define ComputeGroupSize 256
+#define GroupSize 256
 
 RWStructuredBuffer<Particle> Particles;
 
@@ -15,9 +15,9 @@ float DeltaTime;
 float Force;
 float2 ForceCenter;
 
-[numthreads(ComputeGroupSize, 1, 1)]
-void CS(uint3 localID : SV_GroupThreadID, uint3 dispatchID : SV_GroupID,
-	    uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
+[numthreads(GroupSize, 1, 1)]
+void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
+        uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
 {
     Particle p = Particles[globalID.x];
     
