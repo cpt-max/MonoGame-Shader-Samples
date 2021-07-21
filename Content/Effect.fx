@@ -17,11 +17,11 @@ float ObjectSize;
 //================================================================================================
 // Compute Shader
 //================================================================================================
-#define ComputeGroupSize 64
+#define GroupSize 64
 
-[numthreads(ComputeGroupSize, 1, 1)]
-void CS(uint3 localID : SV_GroupThreadID, uint3 dispatchID : SV_GroupID,
-	    uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
+[numthreads(GroupSize, 1, 1)]
+void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
+        uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
 {
     float2 pos = Inputs[globalID.x].pos;
     int collisions = 0;

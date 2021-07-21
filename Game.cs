@@ -20,7 +20,7 @@ namespace ShaderTest
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
 
-        const int ComputeGroupSize = 64; // needs to be the same as the ComputeGroupSize define in the compute shader
+        const int ComputeGroupSize = 64; // needs to be the same as the GroupSize define in the compute shader
         const int MaxCircleCount = 10000;
 
         int circleCount { get { return (int)circleCountFloat; } }
@@ -43,12 +43,13 @@ namespace ShaderTest
 
         public ShaderTestGame()
         {
-            //GraphicsAdapter.UseDebugLayers = true;
             Content.RootDirectory = "Content";
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;
+
+            //GraphicsAdapter.UseDebugLayers = true;
         }
 
         protected override void Initialize()
@@ -66,8 +67,8 @@ namespace ShaderTest
             textFont = Content.Load<SpriteFont>("TextFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            circlesBuffer = new StructuredBuffer(GraphicsDevice, typeof(Circle), MaxCircleCount, BufferUsage.None, false);
-            collisionsBuffer = new StructuredBuffer(GraphicsDevice, typeof(Collision), MaxCircleCount, BufferUsage.None, true);
+            circlesBuffer = new StructuredBuffer(GraphicsDevice, typeof(Circle), MaxCircleCount, BufferUsage.None, ShaderAccess.Read);
+            collisionsBuffer = new StructuredBuffer(GraphicsDevice, typeof(Collision), MaxCircleCount, BufferUsage.None, ShaderAccess.ReadWrite);
 
             FillBufferWithRandomCircles();
         }
@@ -110,7 +111,7 @@ namespace ShaderTest
 
         protected override void Draw(GameTime gameTime)
         {
-            graphics.GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.Black);
 
             RunCompute();
             DrawCircles();
@@ -139,7 +140,7 @@ namespace ShaderTest
 
         private void DrawCircles()
         {
-            spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearClamp);
+            spriteBatch.Begin();
 
             for (int i = 0; i < circleCount; i++)
             {
