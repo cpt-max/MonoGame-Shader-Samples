@@ -2,7 +2,7 @@
 
 # Collision Test Compute Shader for MonoGame
 
-![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview/Screenshots/PixelSort.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/PixelSort.jpg?raw=true)
 
 This sample uses a compute shader to sort pixels in a texture horizontally by hue.<br>
 For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.<br>
