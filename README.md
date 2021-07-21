@@ -2,7 +2,7 @@
 
 # Collision Test Compute Shader for MonoGame
 
-![Screenshots](/Screenshot.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/ComputeCircles.jpg?raw=true)
 
 This sample uses a compute shader to do brute-force collision checks between circles. The buffer containing the collision results is then downloaded to the CPU, in order to color the circles according to how many collisions they are involved in.  
 
