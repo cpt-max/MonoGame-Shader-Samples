@@ -5,7 +5,7 @@
 ![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/PixelSort.jpg?raw=true)
 
 This sample uses a compute shader to sort pixels in a texture horizontally by hue.<br>
-For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.<br>
+For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.<br><br>
 While this could also be done using Render-to-texture, it becomes easier to program, and probably faster, in a compute shader. This is because each compute thread can write to multiple pixels, which simplifies the code, and reduces the number of total threads and texture reads required.  
 
 ### Build for OpenGL
