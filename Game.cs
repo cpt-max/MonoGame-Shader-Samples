@@ -64,7 +64,7 @@ namespace ShaderTest
             texture = Content.Load<Texture2D>("Texture");
             textFont = Content.Load<SpriteFont>("TextFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            particleBuffer = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, true);
+            particleBuffer = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, ShaderAccess.ReadWrite);
 
             FillParticlesBufferRandomly();
             CreateQuadBufferForParticleRendering(ref quadVertexBuffer, ref quadIndexBuffer);
