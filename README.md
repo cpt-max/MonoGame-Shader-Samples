@@ -1,6 +1,6 @@
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 
-# Collision Test Compute Shader for MonoGame
+# Pixel-Sort Compute Shader for MonoGame
 
 ![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/PixelSort.jpg?raw=true)
 
