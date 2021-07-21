@@ -17,7 +17,7 @@ namespace ShaderTest
         const int ResolutionY = 720;
 
         const int MaxParticleCount = 1000000;
-        const int ComputeGroupSize = 256; // has to be the same as the ComputeGroupSize define in the compute shader 
+        const int ComputeGroupSize = 256; // has to be the same as the GroupSize define in the compute shader 
 
         int particleCount = 10000;
         float fps;
@@ -105,7 +105,7 @@ namespace ShaderTest
 
         protected override void Draw(GameTime gameTime)
         {
-            graphics.GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.Black);
 
             ComputeParticles(gameTime);
 
