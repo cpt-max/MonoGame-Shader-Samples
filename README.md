@@ -2,7 +2,7 @@
 
 # Particle Compute & Geometry Shader for MonoGame
 
-![Screenshots](/Screenshot.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/ComputeGeometryParticles.jpg?raw=true)
 
 This sample uses a compute shader to update particles on the GPU. 
 The particle buffer is used directly by the vertex shader that draws the particles. Since no data needs to be downloaded to the CPU, this method is very fast.
