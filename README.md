@@ -1,12 +1,13 @@
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 
-# Pixel-Sort Compute Shader for MonoGame
+# Edit Mesh Compute Shader for MonoGame
 
-![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/PixelSort.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/EditMesh.jpg?raw=true)
 
-This sample uses a compute shader to sort pixels in a texture horizontally by hue.<br>
-For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.<br><br>
-While this could also be done using Render-to-texture, it becomes easier to program, and probably faster, with a compute shader. This is because each compute thread can write to multiple pixels, which simplifies the code, and reduces the number of threads and texture reads required.  
+This sample uses a compute shader to modify a vertex and an index buffer directly on the GPU.<br>
+The mouse can be used to distort vertex positions.<br>
+The mesh normals are visualized, but they don't update in response to mesh modifications. This would complicate the compute shader quite a bit.<br>
+Pressing the tab key will reverse the triangle winding order in the index buffer. The same effect could of course be created much simpler, without index buffer modification, but that's not the point of this sample.
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.
