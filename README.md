@@ -38,6 +38,11 @@ This sample uses a compute shader to sort pixels in a texture horizontally by hu
 For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.
 <br clear="left"/><br>
 
+## [Edit Mesh Compute Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_vertex_buffer)
+[<img align="left" width="300" src="Screenshots/EditMesh.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_vertex_buffer)
+This sample uses a compute shader to modify a vertex and an index buffer directly on the GPU.
+<br clear="left"/><br>
+
 
 
 
