@@ -10,22 +10,26 @@ namespace ShaderTest
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
 
-        const int ComputeGroupSizeXY = 8; // needs to be the same as the GroupSizeXY defined in the compute shader
+        const int ComputeGroupSize = 64; // needs to be the same as the GroupSize defined in the compute shader
 
         GraphicsDeviceManager graphics;
         Effect effect;
-        RenderTarget2D renderTarget;
-        Texture2D circleTexture;
-        Texture2D computeTexture;
+        VertexBuffer computeVertexBuffer;
+        IndexBuffer computeIndexBuffer;
+
         SpriteBatch spriteBatch;
         SpriteFont textFont;
-    
-        bool initRenderTarget = true;
-        int pixelOffsetX;
+
+        Vector3 camPos;
+        Vector3 mouseRayDir;
+        float rotation;
+        float attract;
+        bool tabPressed;
 
         public ShaderTestGame()
         {
             Content.RootDirectory = "Content";
+            IsMouseVisible = true;
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
@@ -45,102 +49,133 @@ namespace ShaderTest
         protected override void LoadContent()
         {
             effect = Content.Load<Effect>("Effect");
-            circleTexture = Content.Load<Texture2D>("Texture");
             textFont = Content.Load<SpriteFont>("TextFont");
-
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            renderTarget = new RenderTarget2D(GraphicsDevice, ResolutionX, ResolutionY);
-            computeTexture = new Texture2D(GraphicsDevice, ResolutionX, ResolutionY, false, SurfaceFormat.Color, ShaderAccess.ReadWrite);
+
+            LoadComputeMesh(ref computeVertexBuffer, ref computeIndexBuffer);
+        }
+
+        private void LoadComputeMesh(ref VertexBuffer vertexBuffer, ref IndexBuffer indexBuffer)
+        {
+            // vertex and index buffers loaded through the content pipeline are not created with ShaderAccess.ReadWrite,
+            // so we have to create new buffers with ShaderAccess.ReadWrite amd copy the loaded data into them.
+            var model = Content.Load<Model>("Model");
+            var mesh = model.Meshes[0].MeshParts[0];
+
+            var vertices = new VertexPositionNormalTexture[mesh.NumVertices];
+            var indices = new ushort[mesh.IndexBuffer.IndexCount];
+
+            mesh.VertexBuffer.GetData(vertices);
+            mesh.IndexBuffer.GetData(indices);
+
+            if (vertexBuffer == null)
+                vertexBuffer = new VertexBuffer(GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Length, BufferUsage.WriteOnly, ShaderAccess.ReadWrite);
+            if (indexBuffer == null)
+                indexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.SixteenBits, indices.Length, BufferUsage.WriteOnly, ShaderAccess.ReadWrite);
+
+            vertexBuffer.SetData(vertices);
+            indexBuffer.SetData(indices);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            KeyboardState keyboardState = Keyboard.GetState();
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            var keyboardState = Keyboard.GetState();
+            var mouseState = Mouse.GetState();
+
+            if (keyboardState.IsKeyDown(Keys.W))
+                rotation += dt;
+            if (keyboardState.IsKeyDown(Keys.Q))
+                rotation -= dt;
 
             if (keyboardState.IsKeyDown(Keys.Space))
-                initRenderTarget = true;
+                LoadComputeMesh(ref computeVertexBuffer, ref computeIndexBuffer);
+            
+            if (keyboardState.IsKeyDown(Keys.Tab) && !tabPressed)
+                ComputeFlipIndices();
+
+            tabPressed = keyboardState.IsKeyDown(Keys.Tab);
+
+            attract = mouseState.LeftButton  == ButtonState.Pressed ? -1f :
+                      mouseState.RightButton == ButtonState.Pressed ?  1f : 0f;
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            if (initRenderTarget)
-                InitRenderTarget(); // draw a bunch of circles
+            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            RunCompute();
-
-            DrawTextureToTarget(computeTexture, renderTarget); // update the render target, it will be the input for next frame's compute iteration
-            DrawTextureToTarget(computeTexture, null); // draw also to backbuffer, so we can see something
-
+            ComputeVertexSculpting(gameTime);
+            DrawMesh();
             DrawText();
 
             base.Draw(gameTime);
         }
 
-        private void RunCompute()
+        private void ComputeVertexSculpting(GameTime gameTime)
         {
-            effect.Parameters["Input"].SetValue(renderTarget);
-            effect.Parameters["Output"].SetValue(computeTexture);
-            effect.Parameters["OffsetX"].SetValue(pixelOffsetX);
-            effect.Parameters["Width"].SetValue(ResolutionX);          
+            effect.Parameters["Vertices"].SetValue(computeVertexBuffer);
+            effect.Parameters["CamPos"].SetValue(camPos);
+            effect.Parameters["MouseRay"].SetValue(mouseRayDir);
+            effect.Parameters["Attract"].SetValue(attract);
+            effect.Parameters["DeltaTime"].SetValue((float)gameTime.ElapsedGameTime.TotalSeconds);
 
-            foreach (var pass in effect.CurrentTechnique.Passes)
+            foreach (var pass in effect.Techniques["SculptVertices"].Passes)
             {
                 pass.ApplyCompute();
 
-                int groupCountX = ResolutionX / ComputeGroupSizeXY / 2; // the division by 2 is because a single thread operates on a pair of pixels, not on individual pixels
-                int groupCountY = ResolutionY / ComputeGroupSizeXY;
+                int groupCount = (int)Math.Ceiling((double)computeVertexBuffer.VertexCount / ComputeGroupSize); 
 
-                GraphicsDevice.DispatchCompute(groupCountX, groupCountY, 1);
+                GraphicsDevice.DispatchCompute(groupCount, 1, 1);
             }
-
-            // alternate the x-offset btw 0 and 1, to make sure we don't pair up the same pixels every frame,
-            // which would make it impossible to sort the whole image
-            pixelOffsetX = pixelOffsetX == 0 ? 1 : 0;
         }
 
-        private void InitRenderTarget()
+        private void ComputeFlipIndices()
         {
-            Random rand = new Random();
+            effect.Parameters["Indices"].SetValue(computeIndexBuffer);
 
-            GraphicsDevice.SetRenderTarget(renderTarget);
-            GraphicsDevice.Clear(Color.Black);
-
-            spriteBatch.Begin();
-
-            for (int i = 0; i < 100; i++)
+            foreach (var pass in effect.Techniques["FlipIndices"].Passes)
             {
-                var pos = new Vector2(
-                    (float)rand.NextDouble() * ResolutionX - 128,
-                    (float)rand.NextDouble() * ResolutionY - 128);
+                pass.ApplyCompute();
 
-                var col = new Color(
-                    (float)rand.NextDouble(),
-                    (float)rand.NextDouble(),
-                    (float)rand.NextDouble());
+                int groupCount = (int)Math.Ceiling((double)computeIndexBuffer.IndexCount / ComputeGroupSize / 6); // every thread is responsible for 2 triangle / 6 indices
 
-                spriteBatch.Draw(circleTexture, pos, col);
+                GraphicsDevice.DispatchCompute(groupCount, 1, 1);
             }
-                
-            spriteBatch.End();
-
-            GraphicsDevice.SetRenderTarget(null);
-            initRenderTarget = false;
         }
 
-        private void DrawTextureToTarget(Texture2D tex, RenderTarget2D target)
-        {
-            GraphicsDevice.SetRenderTarget(target);
+        private void DrawMesh()
+        {        
+            camPos = new Vector3((float)Math.Sin(rotation) * 3, 0, (float)Math.Cos(rotation) * 3);
+            Vector3 camLookAt = new Vector3(0, 0, 0);
 
-            spriteBatch.Begin();
-            spriteBatch.Draw(tex, Vector2.Zero, Color.White);
-            spriteBatch.End();
+            Matrix view = Matrix.CreateLookAt(camPos, camLookAt, new Vector3(0, 1, 0));
+            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60), (float)ResolutionX / (float)ResolutionY, 0.1f, 1000f);
+
+            mouseRayDir = GraphicsDevice.Viewport.Unproject(new Vector3(Mouse.GetState().X, Mouse.GetState().Y, 1), projection, view, Matrix.Identity) - camPos;
+            mouseRayDir.Normalize();
+
+            effect.Parameters["WorldViewProjection"].SetValue(view * projection);
+
+            foreach (var pass in effect.Techniques["DrawMesh"].Passes)
+            {
+                pass.Apply();
+
+                GraphicsDevice.SetVertexBuffer(computeVertexBuffer);
+                GraphicsDevice.Indices = computeIndexBuffer;
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, computeIndexBuffer.IndexCount / 3);
+            }
         }
 
         private void DrawText()
         {
-            string text = "Press Space to Reset\n"; 
+            string text = "Q and W to Rotate\n";
+            text +=       "Mouse to Sculpt\n";
+            text +=       "Tab to Flip Triangle Winding\n";
+            text +=       "Space to Reset\n";
 
             spriteBatch.Begin();
             spriteBatch.DrawString(textFont, text, new Vector2(30, 30), Color.White);
