@@ -43,7 +43,7 @@ For each pair of pixels a compute thread is launched, that swaps the pixels (if 
 This sample uses a compute shader to modify a vertex and an index buffer directly on the GPU.
 <br clear="left"/><br>
 
-## [Texture3D Compute Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_texture_3d)
+## [Texture3D Compute Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_3d_texture)
 [<img align="left" width="300" src="Screenshots/Texture3D.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_write_to_3d_texture)
 This sample uses a compute shader to update a 3D texture on the GPU.<br>
 The texture is initialized with a bunch of randomly colored pixels. The pixel's color represents a velocity, so pixels move through the volume.
