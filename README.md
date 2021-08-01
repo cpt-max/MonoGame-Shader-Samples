@@ -1,12 +1,13 @@
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 
-# Pixel-Sort Compute Shader for MonoGame
+# Texture3D Compute Shader for MonoGame
 
-![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/PixelSort.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/Texture3D.jpg?raw=true)
 
-This sample uses a compute shader to sort pixels in a texture horizontally by hue.<br>
-For each pair of pixels a compute thread is launched, that swaps the pixels (if neccessary) like a bubble sort.<br><br>
-While this could also be done using Render-to-texture, it becomes easier to program, and probably faster, with a compute shader. This is because each compute thread can write to multiple pixels, which simplifies the code, and reduces the number of threads and texture reads required.  
+This sample uses a compute shader to update a 3D texture on the GPU.<br>
+The texture is initialized with a bunch of randomly colored pixels. The pixel's color represents a velocity, so pixels move through the volume.<br><br>
+
+The visualisation of the 3D texture is accomplished by rendering each z-slice of the texture as a separate quad. As a result a slice will become invisible, when viewd exactly from the side.
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.

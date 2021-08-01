@@ -10,18 +10,20 @@ namespace ShaderTest
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
 
-        const int ComputeGroupSizeXY = 8; // needs to be the same as the GroupSizeXY defined in the compute shader
+        const int TextureSize = 128;
+        const int ComputeGroupSizeXYZ = 4; // needs to be the same as the GroupSizeXYX defined in the compute shader    
 
         GraphicsDeviceManager graphics;
         Effect effect;
-        RenderTarget2D renderTarget;
-        Texture2D circleTexture;
-        Texture2D computeTexture;
+        Texture3D computeTexture;
+        VertexBuffer cubeSlices;
         SpriteBatch spriteBatch;
         SpriteFont textFont;
-    
-        bool initRenderTarget = true;
-        int pixelOffsetX;
+
+        Random rand = new Random();
+
+        float rotation;
+        float rotationOld;
 
         public ShaderTestGame()
         {
@@ -31,7 +33,7 @@ namespace ShaderTest
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;
 
-            //GraphicsAdapter.UseDebugLayers = true;
+            // GraphicsAdapter.UseDebugLayers = true;
         }
 
         protected override void Initialize()
@@ -45,34 +47,37 @@ namespace ShaderTest
         protected override void LoadContent()
         {
             effect = Content.Load<Effect>("Effect");
-            circleTexture = Content.Load<Texture2D>("Texture");
             textFont = Content.Load<SpriteFont>("TextFont");
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            renderTarget = new RenderTarget2D(GraphicsDevice, ResolutionX, ResolutionY);
-            computeTexture = new Texture2D(GraphicsDevice, ResolutionX, ResolutionY, false, SurfaceFormat.Color, ShaderAccess.ReadWrite);
+            computeTexture = new Texture3D(GraphicsDevice, TextureSize, TextureSize, TextureSize, false, SurfaceFormat.Color, ShaderAccess.ReadWrite);
+
+            InitTexture3DRandomly(computeTexture);
+            cubeSlices = CreateCubeSlices();
         }
 
         protected override void Update(GameTime gameTime)
         {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             KeyboardState keyboardState = Keyboard.GetState();
 
+            rotationOld = rotation;
+            if (keyboardState.IsKeyDown(Keys.W))
+                rotation += dt;
+            if (keyboardState.IsKeyDown(Keys.Q))
+                rotation -= dt;
+
             if (keyboardState.IsKeyDown(Keys.Space))
-                initRenderTarget = true;
+                InitTexture3DRandomly(computeTexture);
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            if (initRenderTarget)
-                InitRenderTarget(); // draw a bunch of circles
-
             RunCompute();
-
-            DrawTextureToTarget(computeTexture, renderTarget); // update the render target, it will be the input for next frame's compute iteration
-            DrawTextureToTarget(computeTexture, null); // draw also to backbuffer, so we can see something
-
+            Draw3DTextureCube();
             DrawText();
 
             base.Draw(gameTime);
@@ -80,71 +85,101 @@ namespace ShaderTest
 
         private void RunCompute()
         {
-            effect.Parameters["Input"].SetValue(renderTarget);
-            effect.Parameters["Output"].SetValue(computeTexture);
-            effect.Parameters["OffsetX"].SetValue(pixelOffsetX);
-            effect.Parameters["Width"].SetValue(ResolutionX);          
+            // don't update while rotating
+            if (rotation != rotationOld)
+                return;
+
+            // update the 3D texture in the compute shader
+            effect.Parameters["Texture"].SetValue(computeTexture);
+            effect.Parameters["TextureSize"].SetValue(TextureSize);
+
+            int groupCount = TextureSize / ComputeGroupSizeXYZ;
 
             foreach (var pass in effect.CurrentTechnique.Passes)
             {
                 pass.ApplyCompute();
-
-                int groupCountX = ResolutionX / ComputeGroupSizeXY / 2; // the division by 2 is because a single thread operates on a pair of pixels, not on individual pixels
-                int groupCountY = ResolutionY / ComputeGroupSizeXY;
-
-                GraphicsDevice.DispatchCompute(groupCountX, groupCountY, 1);
+                GraphicsDevice.DispatchCompute(groupCount, groupCount, groupCount);
             }
-
-            // alternate the x-offset btw 0 and 1, to make sure we don't pair up the same pixels every frame,
-            // which would make it impossible to sort the whole image
-            pixelOffsetX = pixelOffsetX == 0 ? 1 : 0;
         }
 
-        private void InitRenderTarget()
+        private void Draw3DTextureCube()
         {
-            Random rand = new Random();
-
-            GraphicsDevice.SetRenderTarget(renderTarget);
             GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+            GraphicsDevice.BlendState = BlendState.Additive;
 
-            spriteBatch.Begin();
+            Vector3 camPos = new Vector3((float)Math.Sin(rotation) * 2, 1, (float)Math.Cos(rotation) * 2);
 
-            for (int i = 0; i < 100; i++)
+            Matrix world = Matrix.Identity;
+            Matrix view = Matrix.CreateLookAt(camPos, Vector3.Zero, new Vector3(0, 1, 0));
+            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(40), (float)ResolutionX / (float)ResolutionY, 0.1f, 1000f);
+
+            effect.Parameters["TextureReadOnly"].SetValue(computeTexture);
+            effect.Parameters["WorldViewProjection"].SetValue(world * view * projection);          
+
+            foreach (var pass in effect.CurrentTechnique.Passes)
             {
-                var pos = new Vector2(
-                    (float)rand.NextDouble() * ResolutionX - 128,
-                    (float)rand.NextDouble() * ResolutionY - 128);
+                pass.Apply();
 
-                var col = new Color(
-                    (float)rand.NextDouble(),
-                    (float)rand.NextDouble(),
-                    (float)rand.NextDouble());
-
-                spriteBatch.Draw(circleTexture, pos, col);
+                GraphicsDevice.SetVertexBuffer(cubeSlices);
+                GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, TextureSize * 2);
             }
-                
-            spriteBatch.End();
-
-            GraphicsDevice.SetRenderTarget(null);
-            initRenderTarget = false;
-        }
-
-        private void DrawTextureToTarget(Texture2D tex, RenderTarget2D target)
-        {
-            GraphicsDevice.SetRenderTarget(target);
-
-            spriteBatch.Begin();
-            spriteBatch.Draw(tex, Vector2.Zero, Color.White);
-            spriteBatch.End();
         }
 
         private void DrawText()
         {
-            string text = "Press Space to Reset\n"; 
+            string text = "Q and W to Rotate\n";
+            text +=       "Space for Reset\n";
 
             spriteBatch.Begin();
             spriteBatch.DrawString(textFont, text, new Vector2(30, 30), Color.White);
             spriteBatch.End();
+        }
+
+        private void InitTexture3DRandomly(Texture3D tex)
+        {
+            var pixels = new Color[tex.Width * tex.Height * tex.Depth];
+
+            for (int i = 0; i < 1000; i++)
+            {
+                int x = rand.Next(tex.Width);
+                int y = rand.Next(tex.Height);
+                int z = rand.Next(tex.Depth);
+
+                int r = rand.Next(256);
+                int g = rand.Next(256);
+                int b = rand.Next(256);
+
+                int ind = x + y * tex.Height + z * tex.Height * tex.Depth;
+                pixels[ind] = new Color(r, g, b);
+            }
+
+            tex.SetData(pixels);
+        }
+
+        private VertexBuffer CreateCubeSlices()
+        {
+            // create one quad for every z-slice of the 3D texture => 2 triangles per slice => 6 vertices
+            var vertices = new VertexPositionTexture[TextureSize * 6];
+
+            for (int i = 0; i < TextureSize; i++)
+            {
+                float z = (float)i / (TextureSize - 1);
+                Vector3 center = new Vector3(0.5f);
+
+                vertices[i * 6 + 0] = new VertexPositionTexture(new Vector3(0, 0, z) - center, new Vector2(0, 1));
+                vertices[i * 6 + 1] = new VertexPositionTexture(new Vector3(0, 1, z) - center, new Vector2(0, 0));
+                vertices[i * 6 + 2] = new VertexPositionTexture(new Vector3(1, 1, z) - center, new Vector2(1, 0));
+
+                vertices[i * 6 + 3] = new VertexPositionTexture(new Vector3(0, 0, z) - center, new Vector2(0, 1));
+                vertices[i * 6 + 4] = new VertexPositionTexture(new Vector3(1, 1, z) - center, new Vector2(1, 0));
+                vertices[i * 6 + 5] = new VertexPositionTexture(new Vector3(1, 0, z) - center, new Vector2(1, 1));
+            };
+
+            var vb = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
+            vb.SetData(vertices);
+
+            return vb;
         }
     }
 }
