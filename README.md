@@ -1,19 +1,12 @@
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 
-# Particle Compute & Geometry Shader for MonoGame
+# Particles with Indirect Draw
 
-![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/ComputeGeometryParticles.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/ParticlesIndirectDraw.jpg?raw=true)
 
-This sample uses a compute shader to update particles on the GPU. 
-The particle buffer is used directly by the vertex shader that draws the particles. Since no data needs to be downloaded to the CPU, this method is very fast.
-
-A geometry shader is used to generate the quads for rendering the particles. This version performs a bit better on my RX 5700XT (170 FPS for 10 Mio. particles) than the [version without geometry shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles) (145 FPS for 10 Mio. particles).
-
-For performance tests you have to outcomment 2 lines, otherwise the FPS counter doesn't make sense, and probably up the MaxParticleCount:
-```
-graphics.SynchronizeWithVerticalRetrace = false;
-IsFixedTimeStep = false;
-```
+This sample uses a compute shader to spawn, destroy and update particles.<br>
+Since the spawn and destroy logic is done on the GPU, the CPU doesn't know how many particles to draw.<br>
+Using indirect draw makes it possible to draw and update the correct number of particles, without the need to download that data from the GPU to the CPU.
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.
