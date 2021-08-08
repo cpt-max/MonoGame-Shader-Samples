@@ -14,8 +14,13 @@
 StructuredBuffer<Particle> ParticlesIn;
 RWStructuredBuffer<Particle> ParticlesOut;
 
+#if OPENGL
+StructuredBuffer<uint> IndirectDrawIn;
+RWStructuredBuffer<uint> IndirectDrawOut;
+#else
 RWBuffer<uint> IndirectDrawIn;
 RWBuffer<uint> IndirectDrawOut;
+#endif
 
 int MaxParticleCount;
 int RandInt;
@@ -28,7 +33,7 @@ float DeltaTime;
 [numthreads(GroupSize, 1, 1)]
 void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
         uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
-{
+{   
     uint particleCount = IndirectDrawIn[4];
     if (globalID.x >= particleCount) 
         return;
@@ -65,6 +70,7 @@ void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
                 pNew.pos = p.pos;
                 pNew.vel = ParticlesIn[(particleOutID + (uint)RandInt) % ((uint)MaxParticleCount)].vel; // grab the velocity from another random particle in the buffer
                 pNew.age = 0;
+                pNew.padding = 0;
                 
                 ParticlesOut[particleOutID] = pNew;
             }
