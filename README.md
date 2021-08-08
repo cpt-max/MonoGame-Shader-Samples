@@ -22,11 +22,6 @@ This sample uses a hull and domain shader to round off the edges of a mesh. The 
 This sample uses a compute shader to update particles on the GPU. The particle buffer is used directly by the vertex shader that draws the particles. Since no data needs to be downloaded to the CPU, this method is very fast.
 <br clear="left"/><br>
 
-## [Particle Compute & Geometry Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
-[<img align="left" width="300" src="Screenshots/ComputeGeometryParticles.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
-This is the same compute shader as above, the drawing of the particles is different however. The above sample feeds a vertex buffer, filled with quads, to the vertex shader. This sample feeds point primitives to the vertex shader, and generates the final quads in a geometry shader.   
-<br clear="left"/><br>
-
 ## [Collision Test Compute Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_cpu)
 [<img align="left" width="300" src="Screenshots/ComputeCircles.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_cpu)
 This sample uses a compute shader to do brute-force collision checks between circles. The buffer containing the collision results is then downloaded to the CPU, in order to color the circles according to how many collisions they are involved in.
@@ -49,8 +44,12 @@ This sample uses a compute shader to update a 3D texture on the GPU.<br>
 The texture is initialized with a bunch of randomly colored pixels. The pixel's color represents a velocity, so pixels move through the volume.
 <br clear="left"/><br>
 
-
-
+## [Particles with Indirect Draw](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/indirect_draw_instances)
+[<img align="left" width="300" src="Screenshots/ParticlesIndirectDraw.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
+This sample uses a compute shader to spawn, destroy and update particles.<br>
+Since the spawn and destroy logic is done on the GPU, the CPU doesn't know how many particles to draw.<br>
+Using indirect draw makes it possible to draw and update the correct number of particles, without the need to download that data from the GPU to the CPU. 
+<br clear="left"/><br>
 
 
 
