@@ -122,43 +122,6 @@ VertexOut VS(in VertexIn input)
 }
 
 //==============================================================================
-// Geometry shader 
-//==============================================================================
-struct GeomOut
-{
-    float4 Position : SV_POSITION;
-    float ParticleAge : TexCoord0;
-};
-
-[maxvertexcount(6)]
-void GS(point in VertexOut input[1], inout PointStream<GeomOut> output)
-{ 
-    GeomOut v0, v1, v2, v3;
-    
-    float2 pos = input[0].ParticlePos;
-    float2 size = float2(1, 16.0 / 9.0) * 0.001;
-    
-    v0.Position = float4(pos + float2(-size.x, -size.y), 0, 1);
-    v1.Position = float4(pos + float2(-size.x, +size.y), 0, 1);
-    v2.Position = float4(pos + float2(+size.x, +size.y), 0, 1);
-    v3.Position = float4(pos + float2(+size.x, -size.y), 0, 1);
-    
-    v0.ParticleAge = input[0].ParticleAge;
-    v1.ParticleAge = input[0].ParticleAge;
-    v2.ParticleAge = input[0].ParticleAge;
-    v3.ParticleAge = input[0].ParticleAge;
-    
-    output.Append(v0);
-    output.Append(v1);
-    output.Append(v2);
-    output.RestartStrip();
-    
-    output.Append(v0);
-    output.Append(v2);
-    output.Append(v3);
-}
-
-//==============================================================================
 // Pixel shader 
 //==============================================================================
 float4 PS(VertexOut input) : SV_TARGET
@@ -179,6 +142,5 @@ technique Tech0
         ComputeShader = compile cs_5_0 CS();
         VertexShader = compile vs_5_0 VS();
         PixelShader = compile ps_4_0 PS();
-        //GeometryShader = compile gs_4_0 GS();
     }
 }

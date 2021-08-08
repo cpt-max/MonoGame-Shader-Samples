@@ -270,33 +270,13 @@ namespace ShaderTest
             buffer.SetData(data);
         }
 
-        private void CreateQuadBufferForParticleRendering(ref VertexBuffer quadVertexBuffer/*, ref IndexBuffer quadIndexBuffer*/)
+        private void CreateQuadBufferForParticleRendering(ref VertexBuffer quadVertexBuffer)
         {
-            var vertices = new VertexPositionTexture[3];
-            //var indices = new int[3];
-
-            /*  for (int i = 0; i < MaxParticleCount; i++)
-              {
-                  int vInd = i * 4;
-                  int iInd = i * 6;
-            */
+            var vertices = new VertexPositionTexture[1];
             vertices[0] = new VertexPositionTexture(new Vector3(-1, 1, 0), new Vector2(0, 0));
-            //vertices[1] = new VertexPositionTexture(new Vector3(1, 1, 0), new Vector2(1, 0));
-            //vertices[2] = new VertexPositionTexture(new Vector3(1, -1, 0), new Vector2(1, 1));
-            //vertices[3] = new VertexPositionTexture(new Vector3(-1, -1, 0), new Vector2(0, 1));
-
-            //indices[0] = 0;
-            //indices[1] = 1;
-            //indices[2] = 2;
-            /*indices[3] = 0;
-            indices[4] = 2;
-            indices[5] = 3;*/
 
             quadVertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
             quadVertexBuffer.SetData(vertices);
-
-            //quadIndexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
-            //quadIndexBuffer.SetData(indices);
         }
     }
 }
