@@ -72,7 +72,7 @@ struct GeomOut
     float2 TexCoord : TexCoord0;
 };
 
-[maxvertexcount(4)]
+[maxvertexcount(6)]
 void GS(point in VertexOut input[1], inout TriangleStream<GeomOut> output)
 { 
     GeomOut v0, v1, v2, v3;
@@ -92,6 +92,10 @@ void GS(point in VertexOut input[1], inout TriangleStream<GeomOut> output)
     
     output.Append(v0);
     output.Append(v1);
+    output.Append(v2);
+    output.RestartStrip();
+    
+    output.Append(v0);
     output.Append(v2);
     output.Append(v3);
 }

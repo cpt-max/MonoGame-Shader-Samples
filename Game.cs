@@ -39,11 +39,12 @@ namespace ShaderTest
         public ShaderTestGame()
         {
             Content.RootDirectory = "Content";
+            IsMouseVisible = true;
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;
-
+            
             //graphics.SynchronizeWithVerticalRetrace = false;
             //IsFixedTimeStep = false;
             //GraphicsAdapter.UseDebugLayers = true;
@@ -107,10 +108,8 @@ namespace ShaderTest
             GraphicsDevice.Clear(Color.Black);
 
             ComputeParticles(gameTime);
-
             DrawParticles();
             DrawText();
-            DrawMousePointer();
 
             base.Draw(gameTime);
         }
@@ -142,17 +141,6 @@ namespace ShaderTest
                 GraphicsDevice.SetVertexBuffer(vertexBuffer);
                 GraphicsDevice.DrawPrimitives(PrimitiveType.PointList, 0, particleCount);
             }
-        }
-
-        private void DrawMousePointer()
-        {
-            Vector2 posPixel = (forceCenter * new Vector2(1, -1) + Vector2.One) / 2 * new Vector2(ResolutionX, ResolutionY);
-            Vector2 origin = new Vector2(texture.Width, texture.Height) / 2;
-            Vector2 size = Vector2.One * 0.05f;
-
-            spriteBatch.Begin();
-            spriteBatch.Draw(texture, posPixel, null, new Color(255,230,50), 0, origin, size, SpriteEffects.None, 0);
-            spriteBatch.End();
         }
 
         private void DrawText()

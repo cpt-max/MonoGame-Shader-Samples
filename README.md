@@ -7,8 +7,7 @@
 This sample uses a compute shader to update particles on the GPU. 
 The particle buffer is used directly by the vertex shader that draws the particles. Since no data needs to be downloaded to the CPU, this method is very fast.
 
-A geometry shader is used to generate the quads for rendering the particles. This version performs a bit better on my RX 5700XT (170 FPS for 10 Mio. particles) than the [version without geometry shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles) (145 FPS for 10 Mio. particles).
-
+A geometry shader is used to generate the quads for rendering the particles. 
 For performance tests you have to outcomment 2 lines, otherwise the FPS counter doesn't make sense, and probably up the MaxParticleCount:
 ```
 graphics.SynchronizeWithVerticalRetrace = false;
