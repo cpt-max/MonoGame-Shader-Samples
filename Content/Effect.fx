@@ -56,13 +56,9 @@ VertexOut VS(in VertexIn input)
 {
     VertexOut output;
     
-    uint particleID = input.VertexID / 4;
-    Particle p = ParticlesReadOnly[particleID];
-    
-    float2 size = float2(1, 16.0 / 9.0) * 0.001;
-    float2 pos = p.pos + input.Position.xy * size;
+    Particle p = ParticlesReadOnly[input.VertexID];
 
-    output.Position = float4(pos, 0, 1);
+    output.Position = float4(p.pos, 0, 1);
     output.TexCoord = input.TexCoord;
 	
     return output;
