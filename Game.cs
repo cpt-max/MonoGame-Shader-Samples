@@ -39,13 +39,14 @@ namespace ShaderTest
         public ShaderTestGame()
         {
             Content.RootDirectory = "Content";
+            IsMouseVisible = true;
 
             graphics = new GraphicsDeviceManager(this);
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.IsFullScreen = false;
 
-            graphics.SynchronizeWithVerticalRetrace = false;
-            IsFixedTimeStep = false;
+            //graphics.SynchronizeWithVerticalRetrace = false;
+            //IsFixedTimeStep = false;
             //GraphicsAdapter.UseDebugLayers = true;
         }
 
