@@ -28,7 +28,7 @@ namespace ShaderTest
         Texture2D texture;
         SpriteBatch spriteBatch;
         SpriteFont textFont;
-        VertexBuffer quadVertexBuffer;
+        VertexBuffer pointSpriteVertices;
 
         StructuredBuffer particleBuffer1;
         StructuredBuffer particleBuffer2;
@@ -81,19 +81,19 @@ namespace ShaderTest
             textFont = Content.Load<SpriteFont>("TextFont");
             
             spriteBatch = new SpriteBatch(GraphicsDevice);
-           
+            pointSpriteVertices = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), ComputeGroupSize, BufferUsage.WriteOnly);
+
             particleBuffer1 = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, ShaderAccess.ReadWrite);
             particleBuffer2 = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, ShaderAccess.ReadWrite);
 
             FillParticleBufferRandomly(particleBuffer1);
             FillParticleBufferRandomly(particleBuffer2);
 
-            int indirectDrawBufferSize = DrawInstancedArguments.Count + DispatchComputeArguments.Count;
+            int indirectDrawBufferSize = DispatchComputeArguments.Count + DrawInstancedArguments.Count + 2; // +2 so we have space for extra fields: particleCount and dummyParticleID
             indirectDrawBuffer1 = new IndirectDrawBuffer(GraphicsDevice, BufferUsage.None, ShaderAccess.ReadWrite, indirectDrawBufferSize);
             indirectDrawBuffer2 = new IndirectDrawBuffer(GraphicsDevice, BufferUsage.None, ShaderAccess.ReadWrite, indirectDrawBufferSize);
 
             InitIndirectDrawBuffer(indirectDrawBufferIn, StartParticleCount);
-            CreateQuadBufferForParticleRendering(ref quadVertexBuffer/*, ref quadIndexBuffer*/);
         }
 
         protected override void Update(GameTime gameTime)
@@ -121,7 +121,7 @@ namespace ShaderTest
             if (keyboardState.IsKeyDown(Keys.Tab)) 
             {
                 var data = new uint[1];
-                indirectDrawBufferIn.GetData(4*4, data, 0, 1);
+                indirectDrawBufferIn.GetData(7*4, data, 0, 1);
                 particleCount = (int)data[0];
             }
 
@@ -187,7 +187,7 @@ namespace ShaderTest
             {
                 pass.Apply();
 
-                GraphicsDevice.SetVertexBuffer(quadVertexBuffer);
+                GraphicsDevice.SetVertexBuffer(pointSpriteVertices);
                 GraphicsDevice.DrawInstancedPrimitivesIndirect(PrimitiveType.PointList, indirectDrawBufferIn, DispatchComputeArguments.Count * 4);
             }
         }
@@ -255,28 +255,22 @@ namespace ShaderTest
 
             var drawIndirectArgs = new DrawInstancedArguments
             {
-                VertexCountPerInstance = 3,
-                InstanceCount = particleCount,
+                VertexCountPerInstance = ComputeGroupSize,
+                InstanceCount = groupCount, // each instance draws an entire group of particles. This is more efficient than 1 particle per instance
                 StartVertexLocation = 0,
                 StartInstanceLocation = 0,
             };
 
-            var data = new uint[DispatchComputeArguments.Count + DrawInstancedArguments.Count];
-
+            var data = new uint[buffer.ElementCount];
             int offset = 0;
+
             offset += dispatchIndirectArgs.WriteToArray(data, offset);
             offset += drawIndirectArgs.WriteToArray(data, offset);
 
+            data[offset++] = particleCount;
+            data[offset++] = 0;
+
             buffer.SetData(data);
-        }
-
-        private void CreateQuadBufferForParticleRendering(ref VertexBuffer quadVertexBuffer)
-        {
-            var vertices = new VertexPositionTexture[1];
-            vertices[0] = new VertexPositionTexture(new Vector3(-1, 1, 0), new Vector2(0, 0));
-
-            quadVertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
-            quadVertexBuffer.SetData(vertices);
         }
     }
 }
