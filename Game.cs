@@ -18,7 +18,7 @@ namespace ShaderTest
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
 
-        const int MaxParticleCount = 10000000;
+        const int MaxParticleCount = 12800000;
         const int StartParticleCount = 1000;
         const int ComputeGroupSize = 256; // has to be the same as the GroupSize defined in the compute shader 
 

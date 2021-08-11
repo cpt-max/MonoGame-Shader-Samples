@@ -14,13 +14,8 @@
 StructuredBuffer<Particle> ParticlesIn;
 RWStructuredBuffer<Particle> ParticlesOut;
 
-#if OPENGL
-StructuredBuffer<uint> IndirectDrawIn;
-RWStructuredBuffer<uint> IndirectDrawOut;
-#else
-RWBuffer<uint> IndirectDrawIn;
-RWBuffer<uint> IndirectDrawOut;
-#endif
+ByteAddressBuffer IndirectDrawIn;
+RWByteAddressBuffer IndirectDrawOut;
 
 int MaxParticleCount;
 int RandInt;
@@ -30,28 +25,23 @@ float Spawn;
 float SpawnRadius;
 float DeltaTime;
 
+// define fields inside indirect draw buffer
+static const uint indGroupCount = 0;
+static const uint indInstanceCount = 4 * 4;
+static const uint indParticleCount = 7 * 4;
+static const uint indDummyParticle = 8 * 4;
+
 [numthreads(GroupSize, 1, 1)]
 void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
         uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
 {   
-    // define fields inside indirect draw buffer
-    uint indGroupCount = 0;
-    uint indInstanceCount = 4;
-    uint indParticleCount = 7;
-    uint indDummyParticle = 8;
-    
     uint particleID = globalID.x;
-    uint particleCount = IndirectDrawIn[indParticleCount];
-    uint outID;
+    uint particleCount = IndirectDrawIn.Load(indParticleCount);
+    uint outID, _;
     
     // when particleCount is not an exact multiple of GroupSize we have some dummy particles at the end
     if (particleID >= particleCount)
-    {
-        InterlockedMax(IndirectDrawOut[indDummyParticle], particleCount - 1);
-        InterlockedAdd(IndirectDrawOut[indDummyParticle], 1, outID);
-        ParticlesOut[outID].pos.x = 10000; // move off screen, so dummy particles don't get drawn.
         return;
-    } 
     
     Particle p = ParticlesIn[particleID];
     
@@ -78,7 +68,7 @@ void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
                 p.age = 0; // reset the particle age, so it can't immidiately spawn another child particle
                 
                 // spawn new particles
-                InterlockedAdd(IndirectDrawOut[indParticleCount], 1, outID); // increment the particle count in the indirect draw buffer
+                IndirectDrawOut.InterlockedAdd(indParticleCount, 1, outID); // increment the particle count in the indirect draw buffer
                 
                 Particle pNew;
                 pNew.pos = p.pos;
@@ -92,19 +82,19 @@ void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
     }
 
     // output particle 
-    InterlockedAdd(IndirectDrawOut[indParticleCount], 1, outID); // increment particle count in the indirect draw buffer
-    InterlockedMin(IndirectDrawOut[indParticleCount], (uint) MaxParticleCount); // limit to MaxParticleCount
-    
+    IndirectDrawOut.InterlockedAdd(indParticleCount, 1, outID); // increment particle count in the indirect draw buffer  
     outID = min(outID, MaxParticleCount - 1);
     ParticlesOut[outID] = p;
     
-    // set groupCountX in indirect draw buffer, which will be used in the next DispatchCompute call.
+    // set groupCountX in indirect draw buffer, which will be used in the next DispatchComputeIndirect call.
     // set the same group count also to the instanceCount for the next indirect draw call.
-    // each instance will draw GroupSize many particles. This is more efficient than drawing a single particle per instance.
+    // each instance will draw an entire group of particles, this is more efficient than drawing a single particle per instance.
     uint particleOutCount = outID + 1;
     uint groupCount = particleOutCount / GroupSize + (particleOutCount % GroupSize > 0);
-    InterlockedMax(IndirectDrawOut[indGroupCount], groupCount); // for indirect dispatch 
-    InterlockedMax(IndirectDrawOut[indInstanceCount], groupCount); // for indirect draw
+    groupCount = min(groupCount, (uint)MaxParticleCount / GroupSize); // limit to MaxParticleCount
+    
+    IndirectDrawOut.InterlockedMax(indGroupCount, groupCount, _); // for indirect dispatch 
+    IndirectDrawOut.InterlockedMax(indInstanceCount, groupCount, _); // for indirect draw
 }
 
 //==============================================================================
@@ -128,9 +118,17 @@ struct VertexOut
 
 VertexOut VS(in VertexIn input)
 {
-    VertexOut output;
+    VertexOut output = (VertexOut)0;
     
+    uint particleCount = IndirectDrawIn.Load(indParticleCount);
     uint particleID = input.InstanceID * GroupSize + input.VertexID;
+    
+    if (particleID >= particleCount)
+    {
+        output.Position.x = 10000000; // move off screen
+        return output;
+    }
+    
     Particle p = ParticlesDraw[particleID];
     
     output.Position = float4(p.pos, 0, 1);
