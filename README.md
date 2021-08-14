@@ -6,7 +6,18 @@
 
 This sample uses a compute shader to spawn, destroy and update particles.<br>
 Since the spawn and destroy logic is done on the GPU, the CPU doesn't know how many particles to draw.<br>
-Using indirect draw makes it possible to draw and update the correct number of particles, without the need to download that data from the GPU to the CPU.
+Using indirect draw makes it possible to draw and update the correct number of particles, without the need to download that data to the CPU.
+
+Holding the left mouse button will make particles in range spawn child particles and turn red. For a particle to spawn another child you have to wait until the red has turned blue again. The right mouse button will erase particles in range.
+
+In contrast to the [simpler indirect draw sample here](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/object_culling_indirect_draw), this sample also demonstrates indirect dispatch, to update the particles. The indirect draw buffer contains both, the draw arguments, as well as the group counts for the dispath call, plus some extra variables.
+
+Since instanced drawing is not very efficient for low vertex count objects, like the particle quads here, each instance will draw multiple particles at once. This complicates the shaders a bit, but improves performance substatially. 
+For the FPS counter to make sense, you have to outcomment 2 lines
+```C#
+graphics.SynchronizeWithVerticalRetrace = false;
+IsFixedTimeStep = false;
+```
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.
