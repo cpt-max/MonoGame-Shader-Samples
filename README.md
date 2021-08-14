@@ -1,12 +1,13 @@
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
 
-# Particles with Indirect Draw
+# Object Culling Compute Shader with Indirect Draw
 
-![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/ParticlesIndirectDraw.jpg?raw=true)
+![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/ObjectCulling.jpg?raw=true)
 
-This sample uses a compute shader to spawn, destroy and update particles.<br>
-Since the spawn and destroy logic is done on the GPU, the CPU doesn't know how many particles to draw.<br>
-Using indirect draw makes it possible to draw and update the correct number of particles, without the need to download that data from the GPU to the CPU.
+This sample uses a compute shader to determine the visibility of objects directly on the GPU.<br>
+A structured buffer is filled up with all the visible objects, which are then draw using indirect draw. This has the advantage that no data has to be downloaded from the GPU to the CPU.<br>
+
+The visibility check is a simple distance check here. While such a simple calculation could easily be done on the CPU, in a real world scenario you may have a much more complex algorithm, like some type of occlusion culling for example.
 
 ### Build for OpenGL
 - Open ShaderTestGL.csproj.

@@ -1,139 +1,81 @@
-﻿struct Particle
+﻿struct Monkey
 {
-    float2 pos;
-    float2 vel;
-    float age;
-    float padding;
+    float3 pos;
+    float pad1; // pad to float4
+    float3 vel;
+    float pad2; // pad to float4
 };
 
 //=============================================================================
 // Compute Shader
 //=============================================================================
-#define GroupSize 256
+#define GroupSize 64
 
-StructuredBuffer<Particle> ParticlesIn;
-RWStructuredBuffer<Particle> ParticlesOut;
+RWStructuredBuffer<Monkey> AllMonkeys;
+RWStructuredBuffer<Monkey> VisibleMonkeys;
 
-ByteAddressBuffer IndirectDrawIn;
-RWByteAddressBuffer IndirectDrawOut;
+RWByteAddressBuffer IndirectDraw;
 
-int MaxParticleCount;
-int RandInt;
-
-float2 MousePos;
-float Spawn;
-float SpawnRadius;
+float WorldSize;
 float DeltaTime;
-
-// define fields inside indirect draw buffer
-static const uint indGroupCount = 0;
-static const uint indInstanceCount = 4 * 4;
-static const uint indParticleCount = 7 * 4;
-static const uint indDummyParticle = 8 * 4;
+float CullRadius;
 
 [numthreads(GroupSize, 1, 1)]
 void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
         uint  localIndex : SV_GroupIndex, uint3 globalID : SV_DispatchThreadID)
 {   
-    uint particleID = globalID.x;
-    uint particleCount = IndirectDrawIn.Load(indParticleCount);
-    uint outID, _;
+    Monkey monkey = AllMonkeys[globalID.x];
     
-    // when particleCount is not an exact multiple of GroupSize we have some dummy particles at the end
-    if (particleID >= particleCount)
-        return;
+    // move monkey
+    monkey.pos += monkey.vel * DeltaTime;
+    monkey.pos -= (monkey.pos >  WorldSize) * WorldSize * 2; // wrap on world border
+    monkey.pos += (monkey.pos < -WorldSize) * WorldSize * 2; // wrap on world border
     
-    Particle p = ParticlesIn[particleID];
-    
-    // move and age particle
-    p.pos += p.vel * DeltaTime;
-    p.pos -= (p.pos >  1) * 2; // wrap on border
-    p.pos += (p.pos < -1) * 2; // wrap on border
-    p.age += DeltaTime * length(p.vel * 10);
+    // store updated monkey
+    AllMonkeys[globalID.x] = monkey;
 
-    // spawn and erase particles
-    if (Spawn != 0)
+    // check visibility
+    bool isVisible = dot(monkey.pos, monkey.pos) < CullRadius * CullRadius;
+    if (isVisible)
     {
-        float2 toCenter = MousePos - p.pos;
-        float distSqr = dot(toCenter, toCenter);
-        if (distSqr < SpawnRadius * SpawnRadius)
-        { 
-            if (Spawn < 0)
-            {   
-                // erase by returning early, before the particle gets added to the output buffer
-                return; 
-            }  
-            else if (p.age > 0.5) // only particles of a certain age can spawn child particles
-            {
-                p.age = 0; // reset the particle age, so it can't immidiately spawn another child particle
-                
-                // spawn new particles
-                IndirectDrawOut.InterlockedAdd(indParticleCount, 1, outID); // increment the particle count in the indirect draw buffer
-                
-                Particle pNew;
-                pNew.pos = p.pos;
-                pNew.vel = ParticlesIn[(outID + (uint) RandInt) % ((uint) MaxParticleCount)].vel; // grab the velocity from another random particle in the buffer
-                pNew.age = 0;
-                pNew.padding = 0;
-                
-                ParticlesOut[outID] = pNew;
-            }
-        }
+        // add monkey to visible monkey buffer
+        uint outID;
+        IndirectDraw.InterlockedAdd(4, 1, outID); // increment the instance count in the indirect draw buffer (starts at byte 4) 
+        VisibleMonkeys[outID] = monkey;
     }
-
-    // output particle 
-    IndirectDrawOut.InterlockedAdd(indParticleCount, 1, outID); // increment particle count in the indirect draw buffer  
-    outID = min(outID, MaxParticleCount - 1);
-    ParticlesOut[outID] = p;
-    
-    // set groupCountX in indirect draw buffer, which will be used in the next DispatchComputeIndirect call.
-    // set the same group count also to the instanceCount for the next indirect draw call.
-    // each instance will draw an entire group of particles, this is more efficient than drawing a single particle per instance.
-    uint particleOutCount = outID + 1;
-    uint groupCount = particleOutCount / GroupSize + (particleOutCount % GroupSize > 0);
-    groupCount = min(groupCount, (uint)MaxParticleCount / GroupSize); // limit to MaxParticleCount
-    
-    IndirectDrawOut.InterlockedMax(indGroupCount, groupCount, _); // for indirect dispatch 
-    IndirectDrawOut.InterlockedMax(indInstanceCount, groupCount, _); // for indirect draw
 }
 
 //==============================================================================
 // Vertex shader
 //==============================================================================
-StructuredBuffer<Particle> ParticlesDraw;
+float4x4 ViewProjection;
+
+StructuredBuffer<Monkey> VisibleMonkeysReadonly;
 
 struct VertexIn
 {
     float3 Position : POSITION0;
+    float3 Normal : NORMAL0;
     uint InstanceID : SV_InstanceID;
-    uint VertexID : SV_VertexID;
 };
 
 struct VertexOut
 {
     float4 Position : SV_POSITION;
-    float2 ParticlePos : TexCoord0;
-    float ParticleAge : TexCoord1;
+    float3 Normal : NORMAL0;
 };
 
 VertexOut VS(in VertexIn input)
 {
     VertexOut output = (VertexOut)0;
     
-    uint particleCount = IndirectDrawIn.Load(indParticleCount);
-    uint particleID = input.InstanceID * GroupSize + input.VertexID;
+    Monkey monkey = VisibleMonkeysReadonly[input.InstanceID];
     
-    if (particleID >= particleCount)
-    {
-        output.Position.x = 10000000; // move off screen
-        return output;
-    }
+    float size = 2;
+    float3 pos = monkey.pos + input.Position * size;
     
-    Particle p = ParticlesDraw[particleID];
-    
-    output.Position = float4(p.pos, 0, 1);
-    output.ParticlePos = p.pos;
-    output.ParticleAge = p.age;
+    output.Position = mul(float4(pos, 1), ViewProjection);
+    output.Normal = input.Normal;
 	
     return output;
 }
@@ -143,10 +85,7 @@ VertexOut VS(in VertexIn input)
 //==============================================================================
 float4 PS(VertexOut input) : SV_TARGET
 {
-    float ripe = input.ParticleAge / 0.5;
-    return ripe > 1 ?
-        float4(0.5, 0.8, 1, 1) : 
-        float4(1, ripe, 0, 1);
+    return float4(input.Normal, 1);
 }
 
 //===============================================================================
