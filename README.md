@@ -12,6 +12,8 @@ Holding the left mouse button will make particles in range spawn child particles
 
 In contrast to the [simpler indirect draw sample here](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/object_culling_indirect_draw), this sample also demonstrates indirect dispatch, to update the particles. The indirect draw buffer contains both, the draw arguments, as well as the group counts for the dispath call, plus some extra variables.
 
+There's two particle buffers, and two indirect draw buffers, which are used in a ping-pong fashion. That means in the first frame buffer 1 will be the input, and buffer 2 will be the output, which will be filled with the surviving and newely spawned particles. In the next frame the buffers switch roles. The output buffer becomes the new input buffer, and vice versa. 
+
 Since instanced drawing is not very efficient for low vertex count objects, like the particle quads here, each instance will draw multiple particles at once. This complicates the shaders a bit, but improves performance substatially. 
 For the FPS counter to make sense, you have to outcomment 2 lines
 ```C#
