@@ -51,7 +51,7 @@ A structured buffer is filled up with all the visible objects, which are then dr
 <br clear="left"/><br>
 
 ## [Particles with Indirect Draw](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/indirect_draw_instances)
-[<img align="left" width="300" src="Screenshots/ParticlesIndirectDraw.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
+[<img align="left" width="300" src="Screenshots/ParticlesIndirectDraw.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/indirect_draw_instances)
 This sample uses a compute shader to spawn, destroy and update particles.<br>
 Since the spawn and destroy logic is done on the GPU, the CPU doesn't know how many particles to draw.<br>
 Using indirect draw makes it possible to draw and update the correct number of particles, without the need to download that data to the CPU.
