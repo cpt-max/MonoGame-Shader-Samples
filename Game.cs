@@ -110,11 +110,7 @@ namespace ShaderTest
             });
 
             effect.Parameters["AllMonkeys"].SetValue(allMonkeyBuffer);
-#if OPENGL
-            effect.Parameters["VisibleMonkeys_1"].SetValue(visibleMonkeyBuffer);
-#else
             effect.Parameters["VisibleMonkeys"].SetValue(visibleMonkeyBuffer);
-#endif
             effect.Parameters["IndirectDraw"].SetValue(indirectDrawBuffer);
             effect.Parameters["WorldSize"].SetValue((float)WorldSize);
             effect.Parameters["DeltaTime"].SetValue((float)gameTime.ElapsedGameTime.TotalSeconds);
