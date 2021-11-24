@@ -12,9 +12,7 @@
 #define GroupSize 64
 
 RWStructuredBuffer<Monkey> AllMonkeys;
-RWStructuredBuffer<Monkey> VisibleMonkeys;
-
-RWByteAddressBuffer IndirectDraw;
+AppendStructuredBuffer<Monkey> VisibleMonkeys;
 
 float WorldSize;
 float DeltaTime;
@@ -39,9 +37,7 @@ void CS(uint3 localID : SV_GroupThreadID, uint3 groupID : SV_GroupID,
     if (isVisible)
     {
         // add monkey to visible monkey buffer
-        uint outID;
-        IndirectDraw.InterlockedAdd(4, 1, outID); // increment the instance count in the indirect draw buffer (starts at byte 4) 
-        VisibleMonkeys[outID] = monkey;
+        VisibleMonkeys.Append(monkey);
     }
 }
 

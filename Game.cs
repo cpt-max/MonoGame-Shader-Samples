@@ -66,7 +66,7 @@ namespace ShaderTest
             spriteBatch = new SpriteBatch(GraphicsDevice);
             
             allMonkeyBuffer = new StructuredBuffer(GraphicsDevice, typeof(Monkey), MonkeyCount, BufferUsage.None, ShaderAccess.ReadWrite);
-            visibleMonkeyBuffer = new StructuredBuffer(GraphicsDevice, typeof(Monkey), MonkeyCount, BufferUsage.None, ShaderAccess.ReadWrite);
+            visibleMonkeyBuffer = new StructuredBuffer(GraphicsDevice, typeof(Monkey), MonkeyCount, BufferUsage.None, ShaderAccess.ReadWrite, StructuredBufferType.Append, 0);
             indirectDrawBuffer = new IndirectDrawBuffer(GraphicsDevice, BufferUsage.None, ShaderAccess.ReadWrite);
 
             FillMonkeyBufferRandomly(allMonkeyBuffer);
@@ -111,7 +111,6 @@ namespace ShaderTest
 
             effect.Parameters["AllMonkeys"].SetValue(allMonkeyBuffer);
             effect.Parameters["VisibleMonkeys"].SetValue(visibleMonkeyBuffer);
-            effect.Parameters["IndirectDraw"].SetValue(indirectDrawBuffer);
             effect.Parameters["WorldSize"].SetValue((float)WorldSize);
             effect.Parameters["DeltaTime"].SetValue((float)gameTime.ElapsedGameTime.TotalSeconds);
             effect.Parameters["CullRadius"].SetValue(cullRadius);
@@ -125,6 +124,8 @@ namespace ShaderTest
 
         private void DrawMonkeys()
         {
+            visibleMonkeyBuffer.CopyCounterValue(indirectDrawBuffer, DrawIndexedInstancedArguments.ByteOffsetInstanceCount);
+
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             Matrix view = Matrix.CreateLookAt(new Vector3(40, 10, 80), Vector3.Zero, new Vector3(0, 1, 0));
