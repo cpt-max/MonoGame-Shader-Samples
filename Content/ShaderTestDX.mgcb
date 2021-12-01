@@ -1,8 +1,8 @@
 
 #----------------------------- Global Properties ----------------------------#
 
-/outputDir:../bin/DirectX/Content
-/intermediateDir:../obj
+/outputDir:../bin/Windows/Content
+/intermediateDir:../obj/Content/Windows
 /platform:Windows
 /config:Debug
 /profile:HiDef

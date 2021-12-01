@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ShaderTest
 {
-    public class ShaderTestGame : Game
+    public class ShaderGame : Game
     {
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
@@ -31,7 +31,7 @@ namespace ShaderTest
         bool spaceKeyWasUpLastFrame;
         bool tabKeyWasUpLastFrame;
 
-        public ShaderTestGame()
+        public ShaderGame()
         {
             Content.RootDirectory = "Content";
 
