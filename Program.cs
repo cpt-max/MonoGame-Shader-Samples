@@ -6,7 +6,7 @@ namespace ShaderTest
     {
         static void Main()
         {
-			using (var game = new ShaderTestGame())
+			using (var game = new ShaderGame())
 				game.Run();
         }
     }

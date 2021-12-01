@@ -1,8 +1,8 @@
 
 #----------------------------- Global Properties ----------------------------#
 
-/outputDir:../bin/OpenGL/Content
-/intermediateDir:../obj
+/outputDir:../bin/DesktopGL/Content
+/intermediateDir:../obj/Content/DesktopGL
 /platform:DesktopGL
 /config:Debug
 /profile:HiDef
