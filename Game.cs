@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ShaderTest
 {
-    public class ShaderTestGame : Game
+    public class ShaderGame : Game
     {
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
@@ -26,7 +26,7 @@ namespace ShaderTest
         float geometryGeneration = 5;
         float bend;
 
-        public ShaderTestGame()
+        public ShaderGame()
         {
             Content.RootDirectory = "Content";
 
