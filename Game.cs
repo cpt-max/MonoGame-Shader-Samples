@@ -11,7 +11,7 @@ namespace ShaderTest
         public Vector2 vel;
     };
 
-    public class ShaderTestGame : Game
+    public class ShaderGame : Game
     {
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
@@ -36,7 +36,7 @@ namespace ShaderTest
         StructuredBuffer particleBuffer; // stores all the particle information, will be updated by the compute shader
         VertexBuffer vertexBuffer; // used for drawing the particles
 
-        public ShaderTestGame()
+        public ShaderGame()
         {
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
