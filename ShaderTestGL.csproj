@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\OpenGL\</OutputPath>
+    <OutputPath>bin\DesktopGL\</OutputPath>
     <DefineConstants>TRACE;DEBUG;OPENGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\OpenGL\</OutputPath>
+    <OutputPath>bin\DesktopGL\</OutputPath>
     <DefineConstants>TRACE;OPENGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -36,9 +36,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="Content\ShaderTestGL.mgcb" />
-    <None Include="Content\TextFont.spritefont" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game.cs" />
