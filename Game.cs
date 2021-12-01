@@ -13,7 +13,7 @@ namespace ShaderTest
         public float padding;
     };
 
-    public class ShaderTestGame : Game
+    public class ShaderGame : Game
     {
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
@@ -53,7 +53,7 @@ namespace ShaderTest
         bool spacePressed;
         bool flipBuffersInOut;
 
-        public ShaderTestGame()
+        public ShaderGame()
         {
             Content.RootDirectory = "Content";
 
