@@ -13,7 +13,7 @@ namespace ShaderTest
         public float pad2; // pad to Vector4
     };
 
-    public class ShaderTestGame : Game
+    public class ShaderGame : Game
     {
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
@@ -36,7 +36,7 @@ namespace ShaderTest
         Random rand = new Random();
         float cullRadius = 30;
 
-        public ShaderTestGame()
+        public ShaderGame()
         {
             Content.RootDirectory = "Content";
 
