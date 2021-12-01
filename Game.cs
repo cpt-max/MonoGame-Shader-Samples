@@ -15,7 +15,7 @@ namespace ShaderTest
         public int collisionCount;
     };
 
-    public class ShaderTestGame : Game
+    public class ShaderGame : Game
     {
         const int ResolutionX = 1280;
         const int ResolutionY = 720;
@@ -41,7 +41,7 @@ namespace ShaderTest
 
         Random rand = new Random();
 
-        public ShaderTestGame()
+        public ShaderGame()
         {
             Content.RootDirectory = "Content";
 
