@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- make sure that each project in a multi-project-solution outputs it's project.assets.json file to a different location, so they never conflict -->
+    <MSBuildProjectExtensionsPath>obj\Nuget.$(MSBuildProjectName)</MSBuildProjectExtensionsPath>
+  </PropertyGroup>
+</Project>
