@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>.net5.0-windows</TargetFramework>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <TieredCompilation>false</TieredCompilation>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>ShaderSample</RootNamespace>
+  </PropertyGroup>
+   <ItemGroup>
+    <None Remove=".gitignore" />
+    <None Remove="Content\ShaderSampleGL.mgcb" />
+    <None Remove="Content\bin\**" />
+    <None Remove="Directory.Build.props" />
+  </ItemGroup>
+  <ItemGroup>
+    <MonoGameContentReference Include="Content\ShaderSampleDX.mgcb" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="1.0.0" />
+    <PackageReference Include="MonoGame.Framework.Compute.WindowsDX" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
+  </ItemGroup>
+</Project>
