@@ -47,11 +47,12 @@ The texture is initialized with a bunch of randomly colored pixels. The pixel's 
 ## [Object Culling with Indirect Draw](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/object_culling_indirect_draw)
 [<img align="left" width="300" src="Screenshots/ObjectCulling.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/object_culling_indirect_draw)
 This sample uses a compute shader to determine the visibility of objects directly on the GPU.
-A structured buffer is filled up with all the visible objects, which are then draw using indirect draw. This has the advantage that no data has to be downloaded from the GPU to the CPU.
+A structured buffer is filled up with all the visible objects, which are then draw using indirect draw. This has the advantage that no data has to be downloaded from the GPU to the CPU.<br>
+There is a [converted version of this sample using an append buffer](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/object_culling_indirect_draw_append), which slightly simplifies the code.
 <br clear="left"/><br>
 
 ## [Particles with Indirect Draw](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/indirect_draw_instances)
-[<img align="left" width="300" src="Screenshots/ParticlesIndirectDraw.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/compute_gpu_particles_geometry)
+[<img align="left" width="300" src="Screenshots/ParticlesIndirectDraw.jpg">](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/indirect_draw_instances)
 This sample uses a compute shader to spawn, destroy and update particles.<br>
 Since the spawn and destroy logic is done on the GPU, the CPU doesn't know how many particles to draw.<br>
 Using indirect draw makes it possible to draw and update the correct number of particles, without the need to download that data to the CPU.
