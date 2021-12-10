@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ShaderTest
+namespace ShaderSample
 {
     public static class Program
     {
