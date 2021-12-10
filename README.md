@@ -4,10 +4,9 @@
 
 ![Screenshots](https://github.com/cpt-max/MonoGame-Shader-Samples/blob/overview/Screenshots/ObjectCulling.jpg?raw=true)
 
-This sample uses a compute shader to determine the visibility of objects directly on the GPU.<br>
-A structured buffer is filled up with all the visible objects, which are then draw using indirect draw. This has the advantage that no data has to be downloaded from the GPU to the CPU.<br>
-
-The visibility check is a simple distance check here. While such a simple calculation could easily be done on the CPU, in a real world scenario you may have a much more complex algorithm, like some type of occlusion culling for example.
+This is the same sample as [here](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/object_culling_indirect_draw), but it uses an append buffer instead of a regular structured buffer. This slightly simplifies the code.<br>
+Have a look at the [diff between the branches](https://github.com/cpt-max/MonoGame-Shader-Samples/compare/object_culling_indirect_draw...object_culling_indirect_draw_append). The indirect draw buffer, including the atomic counter operation on it, got completely removed from the shader, replaced by the Append() call.<br>
+In order to still update the counter value in the indirect draw buffer, the CopyCounterValue() function is used.
 
 ## Build Instructions
 The custom MonoGame fork used in this sample is available as a NuGet package, no need to build it yourself.<br>
