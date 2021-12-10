@@ -7,28 +7,21 @@ This sample uses a very simple hull and domain shader to tessellate a single inp
 
 You can switch between different techniques, which effectively lets you disable tessellation and/or the geometry shader.
 
-### Build for OpenGL
-- Open ShaderTestGL.csproj.
-- Make sure MonoGame.Framework.DesktopGL from this [MonoGame fork](https://github.com/MonoGame/MonoGame/pull/7533) is referenced.
-- Rebuild the content in ShaderTestGL.mgcb using the MGCB Editor from that fork.
 
-### Build for DirectX
-- Open ShaderTestDX.csproj.
-- Make sure MonoGame.Framework.WindowsDX from this [MonoGame fork](https://github.com/MonoGame/MonoGame/pull/7533) is referenced. 
-- Rebuild the content in ShaderTestDX.mgcb using the MGCB Editor from that fork. 
+## Build Instructions
+The custom MonoGame fork used in this sample is available as a NuGet package, no need to build it yourself.<br>
+As long as .Net 5 or 6 is installed, you can just open the csproj files in Visual Studio 2019/2022, or launch directly from the command line:
+```
+dotnet run --project ShaderSampleGL.csproj
+```
+On Windows you can use ShaderSampleGL.csproj (OpenGL), or ShaderSampleDX.csproj (DirectX).<br>
+On Linux you have to use ShaderSampleGL.csproj.<br>
+Mac, Android and iOS are not yet available.
 
-[Download the prebuilt executables for Windows](https://www.dropbox.com/s/c5h81mtgw5pnctu/Monogame%20Shader%20Samples.zip?dl=1)
-
-If you are only interested in the DirectX version, you can also use this [DX only branch](https://github.com/cpt-max/MonoGame/tree/shader) instead. This branch doesn't contain the switch from MojoShader to ShaderConductor, so it's a lot lighter.
-
-Thanks to JSandusky as the Hull, Domain and Geometry shader support for DirectX is based on [his MonoGame fork](https://github.com/JSandusky/MonoGame).
-
+Here are more details about [NuGet packages, platform support and build requirements](https://github.com/cpt-max/Docs/blob/master/Build%20Requirements).
 <br><br>
+
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
-
-
-
-
 
 
 
