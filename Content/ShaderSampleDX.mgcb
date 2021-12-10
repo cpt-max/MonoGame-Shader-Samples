@@ -1,9 +1,9 @@
 
 #----------------------------- Global Properties ----------------------------#
 
-/outputDir:../bin/DesktopGL/Content
-/intermediateDir:../obj/Content/DesktopGL
-/platform:DesktopGL
+/outputDir:../bin/$(Configuration)/.net5.0-windows/Content
+/intermediateDir:../obj/$(Configuration)/.net5.0-windows/Content
+/platform:Windows
 /config:Debug
 /profile:HiDef
 /compress:False

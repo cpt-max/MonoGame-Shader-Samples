@@ -1,10 +1,10 @@
 
 #----------------------------- Global Properties ----------------------------#
 
-/outputDir:../bin/Windows/Content
-/intermediateDir:../obj/Content/Windows
-/platform:Windows
-/config:Debug
+/outputDir:../bin/$(Configuration)/.net5.0/Content
+/intermediateDir:../obj/$(Configuration)/.net5.0/Content
+/platform:DesktopGL
+/config:Release
 /profile:HiDef
 /compress:False
 
