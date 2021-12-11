@@ -16,7 +16,7 @@ On Windows you can use ShaderSampleGL.csproj (OpenGL), or ShaderSampleDX.csproj 
 On Linux you have to use ShaderSampleGL.csproj.<br>
 Mac, Android and iOS are not yet available.
 
-Here are more details about [NuGet packages, platform support and build requirements](https://github.com/cpt-max/Docs/blob/master/Build%20Requirements).
+Here are more details about [NuGet packages, platform support and build requirements](https://github.com/cpt-max/Docs/blob/master/Build%20Requirements.md).
 <br><br>
 
 [< Back to overview](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/overview)
