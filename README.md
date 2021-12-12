@@ -1,10 +1,12 @@
 # MonoGame Shader Samples Overview
 
-Each sample is in a separate branch of this repository.<br>
-The samples are based on a [custom MonoGame fork](https://github.com/MonoGame/MonoGame/pull/7533), that adds tesselation, geometry and compute shaders.<br>
-Lazy people can [download the prebuilt executables for Windows](https://www.dropbox.com/s/c5h81mtgw5pnctu/Monogame%20Shader%20Samples.zip?dl=1).
+Each sample is in a separate branch of this repository, so don't clone this branch here, pick a sample from below first.<br>
+The samples are based on a [custom MonoGame fork](https://github.com/cpt-max/MonoGame), that adds tesselation, geometry and compute shaders.<br>
 
-[Compute Shader Guide for MonoGame](https://github.com/cpt-max/Docs/blob/master/MonoGame%20Compute%20Shader%20Guide.md)
+[Compute Shader Guide for MonoGame](https://github.com/cpt-max/Docs/blob/master/MonoGame%20Compute%20Shader%20Guide.md)<br>
+[NuGet Packages, Platform Support and Build Requirements](https://github.com/cpt-max/Docs/blob/master/Build%20Requirements.md)<br>
+[Pull Request for main MonoGame Repo](https://github.com/MonoGame/MonoGame/pull/7533)<br>
+[Download Prebuilt Executables](https://www.dropbox.com/s/c5h81mtgw5pnctu/Monogame%20Shader%20Samples.zip?dl=1)
 <br><br>
 
 ## [Simple Tessellation & Geometry Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/tesselation_geometry)
