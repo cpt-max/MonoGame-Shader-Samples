@@ -42,10 +42,11 @@ namespace ShaderSample
 
         protected override void Initialize()
         {
-            base.Initialize();
             graphics.PreferredBackBufferWidth = ResolutionX;
             graphics.PreferredBackBufferHeight = ResolutionY;
             graphics.ApplyChanges();
+
+            base.Initialize();
         }
 
         protected override void LoadContent()
