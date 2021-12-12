@@ -29,7 +29,6 @@ namespace ShaderSample
         Random rand = new Random();
 
         Effect effect;
-        Texture2D texture;
         SpriteBatch spriteBatch;
         SpriteFont textFont;
 
@@ -61,7 +60,6 @@ namespace ShaderSample
         protected override void LoadContent()
         {
             effect = Content.Load<Effect>("Effect");
-            texture = Content.Load<Texture2D>("Texture");
             textFont = Content.Load<SpriteFont>("TextFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
             particleBuffer = new StructuredBuffer(GraphicsDevice, typeof(Particle), MaxParticleCount, BufferUsage.None, ShaderAccess.ReadWrite);
