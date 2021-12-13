@@ -6,7 +6,8 @@ The samples are based on a [custom MonoGame fork](https://github.com/cpt-max/Mon
 [Compute Shader Guide for MonoGame](https://github.com/cpt-max/Docs/blob/master/MonoGame%20Compute%20Shader%20Guide.md)<br>
 [NuGet Packages, Platform Support and Build Requirements](https://github.com/cpt-max/Docs/blob/master/Build%20Requirements.md)<br>
 [Pull Request for main MonoGame Repo](https://github.com/MonoGame/MonoGame/pull/7533)<br>
-[Download Prebuilt Executables](https://www.dropbox.com/s/c5h81mtgw5pnctu/Monogame%20Shader%20Samples.zip?dl=1)
+[MonoGame Forum Post](https://community.monogame.net/t/compute-tessellation-geometry-shader/16676)<br>
+[Download Prebuilt Executables](https://www.dropbox.com/s/v4gg77pzbniykha/Monogame.Shader.Samples.zip?dl=1) (win-x64, linux-x64, requires .Net 5+)
 <br><br>
 
 ## [Simple Tessellation & Geometry Shader](https://github.com/cpt-max/MonoGame-Shader-Samples/tree/tesselation_geometry)
