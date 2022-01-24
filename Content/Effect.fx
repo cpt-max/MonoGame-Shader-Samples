@@ -3,12 +3,7 @@ float4x4 WorldViewProjection;
 Texture2D Texture;
 float TextureDisplacement;
 
-SamplerState TextureSampler
-{
-	Texture = (Texture);
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState TextureSampler;
 
 //==============================================================================
 // Vertex shader
