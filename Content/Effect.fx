@@ -14,11 +14,7 @@ SamplerState CubeSampler;
 
 bool EnableTexture;
 Texture2D Texture;
-SamplerState TextureSampler
-{
-    AddressU = mirror;
-    AddressV = mirror;
-};
+SamplerState TextureSampler;
 
 //================================================================================================
 // Vertex Shader
