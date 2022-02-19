@@ -17,8 +17,8 @@
     <MonoGameContentReference Include="Content\ShaderSampleDX.mgcb" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.8.1.2" />
-    <PackageReference Include="MonoGame.Framework.Compute.WindowsDX" Version="3.8.1.2" />
+    <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.*" />
+    <PackageReference Include="MonoGame.Framework.Compute.WindowsDX" Version="3.*" />
   </ItemGroup>
   <ItemGroup>
     <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
