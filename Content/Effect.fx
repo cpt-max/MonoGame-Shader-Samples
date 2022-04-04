@@ -3,7 +3,7 @@
 //==============================================================================
 #define GroupSizeXYZ 4
 
-RWTexture3D<float4> Texture;
+RWTexture3D<unorm float4> Texture;
 int TextureSize;
 
 [numthreads(GroupSizeXYZ, GroupSizeXYZ, GroupSizeXYZ)]
