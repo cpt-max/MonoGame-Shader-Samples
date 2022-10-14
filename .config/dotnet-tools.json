@@ -21,7 +21,7 @@
       ]
     },
     "dotnet-mgcb-editor-compute-windows": {
-      "version": "3.8.2",
+      "version": "3.8.2.1",
       "commands": [
         "mgcb-editor-compute-windows"
       ]
