@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>.net5.0</TargetFramework>
+    <TargetFramework>.net6.0</TargetFramework>
     <PublishReadyToRun>false</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
     <RootNamespace>ShaderSample</RootNamespace>
@@ -16,10 +16,11 @@
     <MonoGameContentReference Include="Content\ShaderSampleGL.mgcb" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.*" />
-    <PackageReference Include="MonoGame.Framework.Compute.DesktopGL" Version="3.*" />
+    <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.8.2.*" />
+    <PackageReference Include="MonoGame.Framework.Compute.DesktopGL" Version="3.8.2.*" />
   </ItemGroup>
-  <ItemGroup>
-    <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
-  </ItemGroup> 
+  <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+    <Message Text="Restoring dotnet tools" Importance="High" />
+    <Exec Command="dotnet tool restore" />
+  </Target>
 </Project>
