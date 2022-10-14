@@ -13,7 +13,7 @@ This sample uses a hull and domain shader to round off the edges of a mesh. The 
 
 ## Build Instructions
 The custom MonoGame fork used in this sample is available as a NuGet package, no need to build it yourself.<br>
-As long as .Net 5 or 6 is installed, you can just open the csproj files in Visual Studio 2019/2022, or launch directly from the command line:
+As long as .Net 6 is installed, you can just open the csproj files in Visual Studio 2022, or launch directly from the command line:
 ```
 dotnet run --project ShaderSampleGL.csproj
 ```
