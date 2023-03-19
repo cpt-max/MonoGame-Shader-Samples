@@ -1,8 +1,8 @@
 
 #----------------------------- Global Properties ----------------------------#
 
-/outputDir:../bin/$(Configuration)/.net5.0-windows/Content
-/intermediateDir:../obj/$(Configuration)/.net5.0-windows/Content
+/outputDir:../bin/$(Configuration)/.net6.0-windows/Content
+/intermediateDir:../obj/$(Configuration)/.net6.0-windows/Content
 /platform:Windows
 /config:Debug
 /profile:HiDef
